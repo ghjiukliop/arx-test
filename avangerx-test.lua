@@ -340,17 +340,22 @@ local function CreateLogoUI()
     -- Khi click vào logo
     Button.MouseButton1Click:Connect(function()
         isMinimized = false
-        UI.Enabled = true
     
-        -- Hiển thị lại UI chính đúng cách
+        -- ✅ Force show main GUI
         if Window and Window._screenGui then
             Window._screenGui.Enabled = true
         end
-    
-        if oldMinimize then
-            oldMinimize()
+        if Fluent and Fluent._screenGui then
+            Fluent._screenGui.Enabled = true
+        end
+        if UI then
+            UI.Enabled = true
+        end
+        if OpenUI then
+            OpenUI.Enabled = false
         end
     end)
+    
     
     
     
