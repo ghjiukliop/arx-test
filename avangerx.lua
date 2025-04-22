@@ -341,12 +341,17 @@ local function CreateLogoUI()
     Button.MouseButton1Click:Connect(function()
         isMinimized = false
         UI.Enabled = false
-        
-        -- Hiển thị lại UI chính
-        if Window and Window.Minimize then
+    
+        -- Hiển thị lại UI chính đúng cách
+        if Window and Window._screenGui then
+            Window._screenGui.Enabled = true
+        end
+    
+        if oldMinimize then
             oldMinimize()
         end
     end)
+    
     
     return UI
 end
