@@ -95,11 +95,16 @@ ConfigSystem.DefaultConfig = {
     AutoBossEvent = false,
     BossEventTimeDelay = 5,
     
+    -- Cài đặt Challenge
+    AutoChallenge = false,
+    ChallengeTimeDelay = 5,
+    
     -- Cài đặt In-Game
     AutoPlay = false,
     AutoRetry = false,
     AutoNext = false,
     AutoVote = false,
+    RemoveAnimation = true,
     
     -- Cài đặt Update Units
     AutoUpdate = false,
@@ -112,7 +117,10 @@ ConfigSystem.DefaultConfig = {
     Slot6Level = 0,
     
     -- Cài đặt AFK
-    AutoJoinAFK = false
+    AutoJoinAFK = false,
+    
+    -- Cài đặt UI
+    AutoHideUI = false
 }
 ConfigSystem.CurrentConfig = {}
 
@@ -155,7 +163,6 @@ ConfigSystem.LoadConfig()
 -- Biến toàn cục để theo dõi UI
 local OpenUI = nil
 local isMinimized = false
-local logoCheckConnection = nil
 
 -- Biến lưu trạng thái Summon
 local selectedSummonAmount = ConfigSystem.CurrentConfig.SummonAmount or "x1"
@@ -203,14 +210,21 @@ local autoJoinRangerLoop = nil
 local autoBossEventEnabled = ConfigSystem.CurrentConfig.AutoBossEvent or false
 local autoBossEventLoop = nil
 
+-- Biến lưu trạng thái Challenge
+local autoChallengeEnabled = ConfigSystem.CurrentConfig.AutoChallenge or false
+local autoChallengeLoop = nil
+local challengeTimeDelay = ConfigSystem.CurrentConfig.ChallengeTimeDelay or 5
+
 -- Biến lưu trạng thái In-Game
 local autoPlayEnabled = ConfigSystem.CurrentConfig.AutoPlay or false
 local autoRetryEnabled = ConfigSystem.CurrentConfig.AutoRetry or false
 local autoNextEnabled = ConfigSystem.CurrentConfig.AutoNext or false
 local autoVoteEnabled = ConfigSystem.CurrentConfig.AutoVote or false
+local removeAnimationEnabled = ConfigSystem.CurrentConfig.RemoveAnimation or true
 local autoRetryLoop = nil
 local autoNextLoop = nil
 local autoVoteLoop = nil
+local removeAnimationLoop = nil
 
 -- Biến lưu trạng thái Update Units
 local autoUpdateEnabled = ConfigSystem.CurrentConfig.AutoUpdate or false
@@ -235,6 +249,10 @@ local bossEventTimeDelay = ConfigSystem.CurrentConfig.BossEventTimeDelay or 5
 -- Biến lưu trạng thái AFK
 local autoJoinAFKEnabled = ConfigSystem.CurrentConfig.AutoJoinAFK or false
 local autoJoinAFKLoop = nil
+
+-- Biến lưu trạng thái Auto Hide UI
+local autoHideUIEnabled = ConfigSystem.CurrentConfig.AutoHideUI or false
+local autoHideUITimer = nil
 
 -- Thông tin người chơi
 local playerName = game:GetService("Players").LocalPlayer.Name
@@ -282,156 +300,122 @@ local SettingsTab = Window:AddTab({
 
 -- Tạo logo UI để mở lại khi đã thu nhỏ
 local function CreateLogoUI()
-    -- Hủy logo cũ nếu tồn tại
-    if OpenUI then
-        pcall(function()
-            OpenUI:Destroy()
-        end)
-        OpenUI = nil
-    end
-    
     local UI = Instance.new("ScreenGui")
     local Button = Instance.new("ImageButton")
     local UICorner = Instance.new("UICorner")
     
-    -- Thiết lập ScreenGui
+    -- Kiểm tra môi trường
+    if syn and syn.protect_gui then
+        syn.protect_gui(UI)
+        UI.Parent = game:GetService("CoreGui")
+    elseif gethui then
+        UI.Parent = gethui()
+    else
+        UI.Parent = game:GetService("CoreGui")
+    end
+    
     UI.Name = "AnimeRangersLogo"
     UI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     UI.ResetOnSpawn = false
-    UI.DisplayOrder = 10000
     
-    -- Đặt parent cho UI - thử nhiều cách khác nhau
-    local success = pcall(function()
-        if syn and syn.protect_gui then
-            syn.protect_gui(UI)
-            UI.Parent = game:GetService("CoreGui")
-        elseif gethui then
-            UI.Parent = gethui()
-        else
-            UI.Parent = game:GetService("CoreGui")
-        end
-    end)
-    
-    if not success then
-        pcall(function()
-            UI.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-        end)
-    end
-    
-    -- Thiết lập Button
     Button.Name = "LogoButton"
     Button.Parent = UI
     Button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
     Button.BackgroundTransparency = 0.2
     Button.Position = UDim2.new(0.9, -25, 0.1, 0)
     Button.Size = UDim2.new(0, 50, 0, 50)
-    Button.Image = "rbxassetid://10723424401"  -- ID hình ảnh logo
+    Button.Image = "https://media.discordapp.net/attachments/1321123079409238067/1364239705394122873/ChatGPT_Image_Apr_22_2025_09_01_03_PM.png?ex=6808f2bc&is=6807a13c&hm=f5b9974d43ac06614f7cc3ee032bb79a70215c7b4f17be06cada14b9786402e8&=&format=webp&quality=lossless&width=930&height=930"
     Button.ImageTransparency = 0.1
     Button.Active = true
     Button.Draggable = true
-    Button.ZIndex = 10000
     
     UICorner.CornerRadius = UDim.new(1, 0)
     UICorner.Parent = Button
     
     -- Ẩn logo ban đầu
-    UI.Enabled = true
+    UI.Enabled = false
     
     -- Khi click vào logo
     Button.MouseButton1Click:Connect(function()
+        -- Ẩn logo
+        UI.Enabled = false
+        
+        -- Cập nhật trạng thái
         isMinimized = false
-    
-        -- ✅ Force show main GUI
-        if Window and Window._screenGui then
-            Window._screenGui.Enabled = true
-        end
-        if Fluent and Fluent._screenGui then
-            Fluent._screenGui.Enabled = true
-        end
-        if UI then
-            UI.Enabled = true
-        end
-        if OpenUI then
-            OpenUI.Enabled = false
-        end
+        
+        -- Hiển thị lại UI chính
+        pcall(function()
+            -- Đảm bảo Window là hợp lệ trước khi gọi
+            if Window then
+                -- Nếu có hàm Toggle, sử dụng nó thay vì gọi Minimize trực tiếp
+                if Window.Toggle then
+                    Window.Toggle()
+                elseif Window.Minimize then
+                    Window.Minimize()
+                end
+                
+                -- Đảm bảo UI chính được hiển thị
+                if Window.Frame then
+                    Window.Frame.Visible = true
+                end
+            end
+        end)
+        
+        -- Hiển thị thông báo (debug)
+        print("Đã nhấp vào logo, mở lại UI")
     end)
-    
-    
-    
     
     return UI
 end
-
--- Hàm để đảm bảo logo hiển thị đúng
-local function ensureLogoVisibility()
-    -- Nếu đang bị thu nhỏ, logo phải hiển thị
-    if isMinimized then
-        if not OpenUI or not OpenUI.Parent then
-            OpenUI = CreateLogoUI()
-        end
-        
-        pcall(function()
-            OpenUI.Enabled = true
-        end)
-    else
-        -- Nếu không bị thu nhỏ, logo phải ẩn
-        if OpenUI and OpenUI.Parent then
-            pcall(function()
-                OpenUI.Enabled = false
-            end)
-        end
-    end
-end
-
--- Tạo logo ngay khi script bắt đầu
-spawn(function()
-    wait(1)
-    if not OpenUI then
-        OpenUI = CreateLogoUI()
-    end
-end)
 
 -- Ghi đè hàm minimize mặc định của thư viện
 local oldMinimize = Window.Minimize
 Window.Minimize = function()
     isMinimized = not isMinimized
     
-    -- Tạo logo nếu chưa có
+    -- Đảm bảo logo đã được tạo
     if not OpenUI then
         OpenUI = CreateLogoUI()
     end
     
-    -- Gọi hàm đảm bảo logo hiển thị đúng
-    ensureLogoVisibility()
+    -- Hiển thị/ẩn logo dựa vào trạng thái
+    if OpenUI then
+        OpenUI.Enabled = isMinimized
+        
+        -- Đảm bảo logo vẫn hiển thị (phòng trường hợp bị ẩn do lỗi)
+        if isMinimized then
+            spawn(function()
+                wait(0.5) -- Đợi một chút để đảm bảo UI đã được cập nhật
+                if OpenUI and isMinimized then
+                    OpenUI.Enabled = true
+                end
+            end)
+        end
+    end
     
     -- Gọi hàm minimize gốc
-    oldMinimize()
+    pcall(function()
+        oldMinimize()
+    end)
     
-    -- Thiết lập kiểm tra liên tục nếu đang bị thu nhỏ
-    if isMinimized then
-        -- Hủy kết nối cũ nếu có
-        if logoCheckConnection then
-            pcall(function()
-                logoCheckConnection:Disconnect()
-            end)
-            logoCheckConnection = nil
+    -- Kiểm tra xem UI đã hiển thị đúng chưa sau khi minimize
+    spawn(function()
+        wait(0.5)
+        if isMinimized and OpenUI then
+            -- Đảm bảo logo hiển thị khi UI ẩn
+            OpenUI.Enabled = true
+        elseif not isMinimized and Window and Window.Frame then
+            -- Đảm bảo UI hiển thị khi không minimize
+            Window.Frame.Visible = true
         end
-        
-        -- Tạo kết nối mới
-        logoCheckConnection = game:GetService("RunService").Heartbeat:Connect(function()
-            -- Chỉ kiểm tra mỗi 0.5 giây để tránh tốn hiệu suất
-            if tick() % 0.5 < 0.01 then
-                ensureLogoVisibility()
-            end
-        end)
-    else
-        -- Hủy kiểm tra khi không thu nhỏ
-        if logoCheckConnection then
-            pcall(function()
-                logoCheckConnection:Disconnect()
-            end)
-            logoCheckConnection = nil
-        end
+    end)
+end
+
+-- Thêm phương thức Toggle cho Window nếu chưa có
+if not Window.Toggle then
+    Window.Toggle = function()
+        -- Chuyển đổi trạng thái và gọi hàm minimize đã ghi đè
+        Window.Minimize()
     end
 end
 
@@ -1161,6 +1145,22 @@ else
             end
         end)
     end
+    
+    -- Nếu Auto Challenge được bật, thực hiện join Challenge sau time delay
+    if autoChallengeEnabled then
+        Fluent:Notify({
+            Title = "Auto Join",
+            Content = "Sẽ tham gia Challenge sau " .. challengeTimeDelay .. " giây",
+            Duration = 3
+        })
+        
+        spawn(function()
+            wait(challengeTimeDelay) -- Chờ theo time delay đã đặt
+            if autoChallengeEnabled and not isPlayerInMap() then
+                joinChallenge()
+            end
+        end)
+    end
 end
 
 -- Thông báo khi script đã tải xong
@@ -1562,6 +1562,162 @@ BossEventSection:AddToggle("AutoJoinBossEventToggle", {
                 Title = "Auto Boss Event",
                 Content = "Auto Boss Event đã được tắt",
                 Duration = 3
+            })
+        end
+    end
+})
+
+-- Thêm section Challenge trong tab Play
+local ChallengeSection = PlayTab:AddSection("Challenge")
+
+-- Hàm để tham gia Challenge
+local function joinChallenge()
+    -- Kiểm tra xem người chơi đã ở trong map chưa
+    if isPlayerInMap() then
+        print("Đã phát hiện người chơi đang ở trong map, không thực hiện join Challenge")
+        return false
+    end
+    
+    local success, err = pcall(function()
+        -- Lấy Event
+        local Event = safeGetPath(game:GetService("ReplicatedStorage"), {"Remote", "Server", "PlayRoom", "Event"}, 2)
+        
+        if not Event then
+            warn("Không tìm thấy Event để join Challenge")
+            return
+        end
+        
+        -- 1. Create Challenge Room
+        local args1 = {
+            [1] = "Create",
+            [2] = {
+                ["CreateChallengeRoom"] = true
+            }
+        }
+        Event:FireServer(unpack(args1))
+        print("Đã tạo Challenge Room")
+        wait(1) -- Đợi 1 giây
+        
+        -- 2. Start Challenge
+        local args2 = {
+            [1] = "Start"
+        }
+        Event:FireServer(unpack(args2))
+        print("Đã bắt đầu Challenge")
+    end)
+    
+    if not success then
+        warn("Lỗi khi join Challenge: " .. tostring(err))
+        return false
+    end
+    
+    return true
+end
+
+-- Time Delay slider cho Challenge
+ChallengeSection:AddSlider("ChallengeTimeDelaySlider", {
+    Title = "Time Delay (giây)",
+    Default = challengeTimeDelay,
+    Min = 1,
+    Max = 30,
+    Rounding = 1,
+    Callback = function(Value)
+        challengeTimeDelay = Value
+        ConfigSystem.CurrentConfig.ChallengeTimeDelay = Value
+        ConfigSystem.SaveConfig()
+        print("Đã đặt Challenge Time Delay: " .. Value .. " giây")
+    end
+})
+
+-- Toggle Auto Challenge
+ChallengeSection:AddToggle("AutoChallengeToggle", {
+    Title = "Auto Challenge",
+    Default = ConfigSystem.CurrentConfig.AutoChallenge or false,
+    Callback = function(Value)
+        autoChallengeEnabled = Value
+        ConfigSystem.CurrentConfig.AutoChallenge = Value
+        ConfigSystem.SaveConfig()
+        
+        if Value then
+            -- Kiểm tra ngay lập tức nếu người chơi đang ở trong map
+            if isPlayerInMap() then
+                Fluent:Notify({
+                    Title = "Auto Challenge",
+                    Content = "Đang ở trong map, Auto Challenge sẽ hoạt động khi bạn rời khỏi map",
+                    Duration = 3
+                })
+            else
+                Fluent:Notify({
+                    Title = "Auto Challenge",
+                    Content = "Auto Challenge đã được bật, sẽ bắt đầu sau " .. challengeTimeDelay .. " giây",
+                    Duration = 3
+                })
+                
+                -- Thực hiện join Challenge sau thời gian delay
+                spawn(function()
+                    wait(challengeTimeDelay)
+                    if autoChallengeEnabled and not isPlayerInMap() then
+                        joinChallenge()
+                    end
+                end)
+            end
+            
+            -- Tạo vòng lặp Auto Join Challenge
+            spawn(function()
+                while autoChallengeEnabled and wait(10) do -- Thử join challenge mỗi 10 giây
+                    -- Chỉ thực hiện join challenge nếu người chơi không ở trong map
+                    if not isPlayerInMap() then
+                        -- Áp dụng time delay
+                        print("Đợi " .. challengeTimeDelay .. " giây trước khi join Challenge")
+                        wait(challengeTimeDelay)
+                        
+                        -- Kiểm tra lại sau khi delay
+                        if autoChallengeEnabled and not isPlayerInMap() then
+                            joinChallenge()
+                        end
+                    else
+                        -- Người chơi đang ở trong map, không cần join
+                        print("Đang ở trong map, đợi đến khi người chơi rời khỏi map")
+                    end
+                end
+            end)
+        else
+            Fluent:Notify({
+                Title = "Auto Challenge",
+                Content = "Auto Challenge đã được tắt",
+                Duration = 3
+            })
+        end
+    end
+})
+
+-- Nút Join Challenge (manual)
+ChallengeSection:AddButton({
+    Title = "Join Challenge Now",
+    Callback = function()
+        -- Kiểm tra nếu người chơi đã ở trong map
+        if isPlayerInMap() then
+            Fluent:Notify({
+                Title = "Join Challenge",
+                Content = "Bạn đang ở trong map, không thể tham gia Challenge mới",
+                Duration = 2
+            })
+            return
+        end
+        
+        local success = joinChallenge()
+        
+        if success then
+            Fluent:Notify({
+                Title = "Challenge",
+                Content = "Đang tham gia Challenge",
+                Duration = 2
+            })
+        else
+            Fluent:Notify({
+                Title = "Challenge",
+                Content = "Không thể tham gia Challenge. Vui lòng thử lại sau.",
+                Duration = 2
             })
         end
     end
@@ -2255,5 +2411,186 @@ spawn(function()
     -- Nếu Auto Join AFK được bật và người chơi không ở trong AFKWorld
     if autoJoinAFKEnabled and not isInAFKWorld then
         joinAFKWorld()
+    end
+end)
+
+-- Thêm section UI Settings vào tab Settings
+local UISettingsSection = SettingsTab:AddSection("UI Settings")
+
+-- Toggle Auto Hide UI
+UISettingsSection:AddToggle("AutoHideUIToggle", {
+    Title = "Auto Hide UI",
+    Default = ConfigSystem.CurrentConfig.AutoHideUI or false,
+    Callback = function(Value)
+        autoHideUIEnabled = Value
+        ConfigSystem.CurrentConfig.AutoHideUI = Value
+        ConfigSystem.SaveConfig()
+        
+        if Value then
+            Fluent:Notify({
+                Title = "Auto Hide UI",
+                Content = "Auto Hide UI đã được bật, UI sẽ tự động ẩn sau 5 giây",
+                Duration = 3
+            })
+            
+            -- Tạo timer mới để tự động ẩn UI
+            if autoHideUITimer then
+                autoHideUITimer:Disconnect()
+                autoHideUITimer = nil
+            end
+            
+            autoHideUITimer = spawn(function()
+                wait(5) -- Đợi 5 giây
+                if autoHideUIEnabled and not isMinimized then
+                    -- Tự động ẩn UI
+                    Window.Minimize()
+                end
+            end)
+        else
+            Fluent:Notify({
+                Title = "Auto Hide UI",
+                Content = "Auto Hide UI đã được tắt",
+                Duration = 3
+            })
+            
+            -- Hủy timer nếu có
+            if autoHideUITimer then
+                autoHideUITimer:Disconnect()
+                autoHideUITimer = nil
+            end
+        end
+    end
+})
+
+-- Tự động ẩn UI nếu tính năng được bật
+spawn(function()
+    wait(1) -- Đợi script khởi động hoàn tất
+    
+    -- Nếu Auto Hide UI được bật và UI không ở trạng thái ẩn
+    if autoHideUIEnabled and not isMinimized then
+        -- Tự động ẩn UI
+        Window.Minimize()
+        
+        Fluent:Notify({
+            Title = "Auto Hide UI",
+            Content = "UI đã được tự động ẩn. Nhấp vào logo để hiển thị lại.",
+            Duration = 3
+        })
+    end
+end)
+
+-- Hàm để xóa animation
+local function removeAnimations()
+    local success, err = pcall(function()
+        -- Xóa RewardsUI từ PlayerGui
+        local player = game:GetService("Players").LocalPlayer
+        if player and player:FindFirstChild("PlayerGui") then
+            local rewardsUI = player.PlayerGui:FindFirstChild("RewardsUI")
+            if rewardsUI then
+                rewardsUI:Destroy()
+                print("Đã xóa PlayerGui.RewardsUI")
+            end
+        end
+        
+        -- Xóa UIS từ ReplicatedStorage
+        local replicatedStorage = game:GetService("ReplicatedStorage")
+        if replicatedStorage then
+            local uis = replicatedStorage:FindFirstChild("UIS")
+            if uis then
+                uis:Destroy()
+                print("Đã xóa ReplicatedStorage.UIS")
+            end
+        end
+        
+        -- Xóa RewardsUI từ StarterGui
+        local starterGui = game:GetService("StarterGui")
+        if starterGui then
+            local rewardsUI = starterGui:FindFirstChild("RewardsUI")
+            if rewardsUI then
+                rewardsUI:Destroy()
+                print("Đã xóa StarterGui.RewardsUI")
+            end
+        end
+    end)
+    
+    if not success then
+        warn("Lỗi khi xóa animation: " .. tostring(err))
+    end
+end
+
+-- Toggle Remove Animation
+InGameSection:AddToggle("RemoveAnimationToggle", {
+    Title = "Remove Animation",
+    Default = ConfigSystem.CurrentConfig.RemoveAnimation or true,
+    Callback = function(Value)
+        removeAnimationEnabled = Value
+        ConfigSystem.CurrentConfig.RemoveAnimation = Value
+        ConfigSystem.SaveConfig()
+        
+        if Value then
+            Fluent:Notify({
+                Title = "Remove Animation",
+                Content = "Remove Animation đã được bật, đang xóa các animation",
+                Duration = 2
+            })
+            
+            -- Xóa animation ngay lập tức
+            removeAnimations()
+            
+            -- Hủy vòng lặp cũ nếu có
+            if removeAnimationLoop then
+                removeAnimationLoop:Disconnect()
+                removeAnimationLoop = nil
+            end
+            
+            -- Tạo vòng lặp mới để liên tục xóa animation
+            removeAnimationLoop = spawn(function()
+                while removeAnimationEnabled and wait(5) do -- Kiểm tra và xóa mỗi 5 giây
+                    removeAnimations()
+                end
+            end)
+        else
+            Fluent:Notify({
+                Title = "Remove Animation",
+                Content = "Remove Animation đã được tắt",
+                Duration = 2
+            })
+            
+            -- Hủy vòng lặp nếu có
+            if removeAnimationLoop then
+                removeAnimationLoop:Disconnect()
+                removeAnimationLoop = nil
+            end
+            
+            -- Thông báo cần restart để khôi phục animation
+            Fluent:Notify({
+                Title = "Thông báo",
+                Content = "Bạn cần khởi động lại game để khôi phục animation",
+                Duration = 3
+            })
+        end
+    end
+})
+
+-- Tự động xóa animation khi khởi động nếu tính năng được bật
+spawn(function()
+    wait(2) -- Đợi game load
+    
+    if removeAnimationEnabled then
+        removeAnimations()
+        
+        -- Tạo vòng lặp để liên tục xóa animation
+        if removeAnimationLoop then
+            removeAnimationLoop:Disconnect()
+            removeAnimationLoop = nil
+        end
+        
+        removeAnimationLoop = spawn(function()
+            while removeAnimationEnabled and wait(5) do -- Kiểm tra và xóa mỗi 5 giây
+                removeAnimations()
+            end
+        end)
+        
+        print("Đã kích hoạt Remove Animation")
     end
 end)
