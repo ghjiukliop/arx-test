@@ -335,7 +335,7 @@ local function CreateLogoUI()
     UICorner.Parent = Button
     
     -- Ẩn logo ban đầu
-    UI.Enabled = false
+    UI.Enabled = true
     
     -- Khi click vào logo
     Button.MouseButton1Click:Connect(function()
