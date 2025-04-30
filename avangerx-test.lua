@@ -628,8 +628,7 @@ local Window = Fluent:CreateWindow({
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = true,
-    Theme = ConfigSystem.CurrentConfig.UITheme or "Dark",
-   
+    Theme = ConfigSystem.CurrentConfig.UITheme or "Dark"
 })
 
 -- Tạo tab Info
@@ -4053,6 +4052,10 @@ setupWebhookMonitor()
 -- Hiển thị logo ngay khi script chạy
 if not OpenUI then
     OpenUI = CreateLogoUI()
+end
+-- filepath: c:\Users\TUF\OneDrive\coding stuff\arx\arx not yet.lua
+if Window and Window.Frame and Window.Frame.MinimizeButton then
+    Window.Frame.MinimizeButton.Visible = false
 end
 
 if OpenUI then
