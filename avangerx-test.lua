@@ -191,7 +191,7 @@ KeySystem.CreateKeyUI = function()
     GetKeyButton.Position = UDim2.new(0.5, -75, 0, 200)
     GetKeyButton.Size = UDim2.new(0, 150, 0, 35)
     GetKeyButton.Font = Enum.Font.GothamBold
-    GetKeyButton.Text = "Lấy key mới"
+    GetKeyButton.Text = "Lấy key tại discord"
     GetKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     GetKeyButton.TextSize = 14.000
     
@@ -261,7 +261,7 @@ KeySystem.CreateKeyUI = function()
     
     -- Xử lý sự kiện nút Get Key
     GetKeyButton.MouseButton1Click:Connect(function()
-        setclipboard("https://link-center.net/ht-hub-key")
+        setclipboard("https://discord.gg/6WXu2zZC3d")
         StatusLabel.Text = "Đã sao chép liên kết vào clipboard"
         StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
     end)
@@ -628,7 +628,8 @@ local Window = Fluent:CreateWindow({
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = true,
-    Theme = ConfigSystem.CurrentConfig.UITheme or "Dark"
+    Theme = ConfigSystem.CurrentConfig.UITheme or "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
 })
 
 -- Tạo tab Info
@@ -673,106 +674,56 @@ local WebhookTab = Window:AddTab({
     Icon = "rbxassetid://7734058803"
 })
 
--- Tạo logo UI để mở lại khi đã thu nhỏ
-local function CreateLogoUI()
-    local UI = Instance.new("ScreenGui")
-    local Button = Instance.new("ImageButton")
-    local UICorner = Instance.new("UICorner")
-    
-    -- Kiểm tra môi trường
-    if syn and syn.protect_gui then
-        syn.protect_gui(UI)
-        UI.Parent = game:GetService("CoreGui")
-    elseif gethui then
-        UI.Parent = gethui()
-    else
-        UI.Parent = game:GetService("CoreGui")
-    end
-    
-    UI.Name = "AnimeRangersLogo"
-    UI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    UI.ResetOnSpawn = false
-    
-    Button.Name = "LogoButton"
-    Button.Parent = UI
-    Button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    Button.BackgroundTransparency = 0.2
-    Button.Position = UDim2.new(0.9, -25, 0.1, 0)
-    Button.Size = UDim2.new(0, 50, 0, 50)
-    Button.Image = "rbxassetid://90319448802378" -- Sử dụng ID của logo HT Hub
-    Button.ImageTransparency = 0.1
-    Button.Active = true
-    Button.Draggable = true
-    
-    UICorner.CornerRadius = UDim.new(1, 0)
-    UICorner.Parent = Button
-    
-    -- Ẩn logo ban đầu
-    UI.Enabled = false
-    
-    -- Khi click vào logo
-    Button.MouseButton1Click:Connect(function()
-        -- Ẩn logo
-        UI.Enabled = false
-        
-        -- Cập nhật trạng thái
-        isMinimized = false
-        
-        -- Hiển thị lại UI chính
-        pcall(function()
-            -- Đảm bảo Window là hợp lệ trước khi gọi
-            if Window then
-                -- Nếu có hàm Toggle, sử dụng nó thay vì gọi Minimize trực tiếp
-                if Window.Toggle then
-                    Window.Toggle()
-                elseif Window.Minimize then
-                    Window.Minimize()
-                end
-                
-                -- Đảm bảo UI chính được hiển thị
-                if Window.Frame then
-                    Window.Frame.Visible = true
-                end
+-- Thêm hỗ trợ Logo khi minimize
+repeat task.wait(0.25) until game:IsLoaded()
+getgenv().Image = "rbxassetid://90319448802378" -- ID tài nguyên hình ảnh logo
+getgenv().ToggleUI = "LeftControl" -- Phím để bật/tắt giao diện
+
+-- Tạo logo để mở lại UI khi đã minimize
+task.spawn(function()
+    local success, errorMsg = pcall(function()
+        if not getgenv().LoadedMobileUI == true then 
+            getgenv().LoadedMobileUI = true
+            local OpenUI = Instance.new("ScreenGui")
+            local ImageButton = Instance.new("ImageButton")
+            local UICorner = Instance.new("UICorner")
+            
+            -- Kiểm tra môi trường
+            if syn and syn.protect_gui then
+                syn.protect_gui(OpenUI)
+                OpenUI.Parent = game:GetService("CoreGui")
+            elseif gethui then
+                OpenUI.Parent = gethui()
+            else
+                OpenUI.Parent = game:GetService("CoreGui")
             end
-        end)
-        
-        -- Hiển thị thông báo (debug)
-        print("Đã nhấp vào logo, mở lại UI")
+            
+            OpenUI.Name = "OpenUI"
+            OpenUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+            
+            ImageButton.Parent = OpenUI
+            ImageButton.BackgroundColor3 = Color3.fromRGB(105,105,105)
+            ImageButton.BackgroundTransparency = 0.8
+            ImageButton.Position = UDim2.new(0.9,0,0.1,0)
+            ImageButton.Size = UDim2.new(0,50,0,50)
+            ImageButton.Image = getgenv().Image
+            ImageButton.Draggable = true
+            ImageButton.Transparency = 0.2
+            
+            UICorner.CornerRadius = UDim.new(0,200)
+            UICorner.Parent = ImageButton
+            
+            -- Khi click vào logo sẽ mở lại UI
+            ImageButton.MouseButton1Click:Connect(function()
+                game:GetService("VirtualInputManager"):SendKeyEvent(true,getgenv().ToggleUI,false,game)
+            end)
+        end
     end)
     
-    return UI
-end
-
--- Ghi đè hàm minimize mặc định của thư viện
-local oldMinimize = Window.Minimize
-Window.Minimize = function()
-    isMinimized = not isMinimized
-
-    -- Đảm bảo logo đã được tạo
-    if not OpenUI then
-        OpenUI = CreateLogoUI()
+    if not success then
+        warn("Lỗi khi tạo nút Logo UI: " .. tostring(errorMsg))
     end
-
-    -- Hiển thị/ẩn logo dựa vào trạng thái
-    if OpenUI then
-        OpenUI.Enabled = isMinimized
-    end
-
-    -- Gọi hàm minimize gốc
-    pcall(function()
-        oldMinimize()
-    end)
-end
-
--- Thêm phương thức Toggle cho Window nếu chưa có
-if not Window.Toggle then
-    Window.Toggle = function()
-        -- Chuyển đổi trạng thái và gọi hàm minimize đã ghi đè
-        Window.Minimize()
-    end
-end
-
-
+end)
 
 -- Tự động chọn tab Info khi khởi động
 Window:SelectTab(1) -- Chọn tab đầu tiên (Info)
@@ -4049,15 +4000,3 @@ WebhookSection:AddButton({
 
 -- Khởi động vòng lặp kiểm tra game kết thúc
 setupWebhookMonitor()
--- Hiển thị logo ngay khi script chạy
-if not OpenUI then
-    OpenUI = CreateLogoUI()
-end
--- filepath: c:\Users\TUF\OneDrive\coding stuff\arx\arx not yet.lua
-if Window and Window.Frame and Window.Frame.MinimizeButton then
-    Window.Frame.MinimizeButton.Visible = false
-end
-
-if OpenUI then
-    OpenUI.Enabled = true -- Hiển thị logo ngay lập tức
-end
