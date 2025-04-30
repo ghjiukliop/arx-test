@@ -623,15 +623,16 @@ local playerName = game:GetService("Players").LocalPlayer.Name
 
 -- Tạo Window
 local Window = Fluent:CreateWindow({
-    Title = "HT Hub | Anime Rangers X",
+    Title = "HT Hub | Arx Test",
     SubTitle = "",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,
-    Theme = ConfigSystem.CurrentConfig.UITheme or "Dark",
+    TabWidth = 140,
+    Size = UDim2.fromOffset(500, 400),
+    Acrylic = false,
+    Theme = "Amethyst",
     MinimizeKey = Enum.KeyCode.LeftControl
 })
 
+-- 🛠️ Fix Minimize UI chuẩn nhất
 -- 🛠️ Fix Minimize UI chuẩn nhất
 
 local Players = game:GetService("Players")
@@ -681,6 +682,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         Window.Minimize()
     end
 end)
+
 
 -- Tạo tab Info
 local InfoTab = Window:AddTab({
