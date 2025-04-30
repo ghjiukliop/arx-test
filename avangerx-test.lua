@@ -744,48 +744,7 @@ local function CreateLogoUI()
     return UI
 end
 
--- Ghi đè hàm minimize mặc định của thư viện
-local oldMinimize = Window.Minimize
-Window.Minimize = function()
-    isMinimized = not isMinimized
-    
-    -- Đảm bảo logo đã được tạo
-    if not OpenUI then
-        OpenUI = CreateLogoUI()
-    end
-    
-    -- Hiển thị/ẩn logo dựa vào trạng thái
-    if OpenUI then
-        OpenUI.Enabled = isMinimized
-        
-        -- Đảm bảo logo vẫn hiển thị (phòng trường hợp bị ẩn do lỗi)
-        if isMinimized then
-            spawn(function()
-                wait(0.5) -- Đợi một chút để đảm bảo UI đã được cập nhật
-                if OpenUI and isMinimized then
-                    OpenUI.Enabled = true
-                end
-            end)
-        end
-    end
-    
-    -- Gọi hàm minimize gốc
-    pcall(function()
-        oldMinimize()
-    end)
-    
-    -- Kiểm tra xem UI đã hiển thị đúng chưa sau khi minimize
-    spawn(function()
-        wait(0.5)
-        if isMinimized and OpenUI then
-            -- Đảm bảo logo hiển thị khi UI ẩn
-            OpenUI.Enabled = true
-        elseif not isMinimized and Window and Window.Frame then
-            -- Đảm bảo UI hiển thị khi không minimize
-            Window.Frame.Visible = true
-        end
-    end)
-end
+
 
 -- Thêm phương thức Toggle cho Window nếu chưa có
 if not Window.Toggle then
@@ -796,11 +755,7 @@ if not Window.Toggle then
 end
 
 -- Bắt sự kiện phím để kích hoạt minimize
-game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.LeftControl then
-        Window.Minimize()
-    end
-end)
+
 
 -- Tự động chọn tab Info khi khởi động
 Window:SelectTab(1) -- Chọn tab đầu tiên (Info)
