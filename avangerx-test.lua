@@ -3075,7 +3075,6 @@ AFKSection:AddButton({
         })
     end
 })
-
 -- Thêm toggle Auto Execute Script vào tab Settings
 SettingsTab:AddToggle("AutoExecuteScriptToggle", {
     Title = "Auto Execute Script",
@@ -3100,7 +3099,6 @@ SettingsTab:AddToggle("AutoExecuteScriptToggle", {
     end
 })
 
--- Kiểm tra và tự động thực thi script nếu Auto Execute Script được bật
 -- Kiểm tra và tự động thực thi script nếu Auto Execute Script được bật
 spawn(function()
     wait(1) -- Đợi game load
