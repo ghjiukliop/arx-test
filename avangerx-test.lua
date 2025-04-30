@@ -1,4 +1,9 @@
 -- Anime Rangers X Script
+spawn(function()
+    wait(1) -- Đợi game load
+    if ConfigSystem.CurrentConfig.AutoExecuteScript then
+        print("Auto Execute Script đang chạy...")
+        -- Thực hiện hành động tự động chạy script tại đây
 
 -- Kiểm tra Place ID
 local currentPlaceId = game.PlaceId
@@ -4090,3 +4095,6 @@ end
 if OpenUI then
     OpenUI.Enabled = true -- Hiển thị logo ngay lập tức
 end
+
+end
+end)
