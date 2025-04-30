@@ -4077,3 +4077,78 @@ WebhookSection:AddButton({
 
 -- Khởi động vòng lặp kiểm tra game kết thúc
 setupWebhookMonitor()
+
+-- Tạo logo UI để mở lại khi đã thu nhỏ
+local function CreateLogoUI()
+    local UI = Instance.new("ScreenGui")
+    local Button = Instance.new("ImageButton")
+    local UICorner = Instance.new("UICorner")
+    
+    -- Kiểm tra môi trường
+    if syn and syn.protect_gui then
+        syn.protect_gui(UI)
+        UI.Parent = game:GetService("CoreGui")
+    elseif gethui then
+        UI.Parent = gethui()
+    else
+        UI.Parent = game:GetService("CoreGui")
+    end
+    
+    UI.Name = "AnimeRangersLogo"
+    UI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    UI.ResetOnSpawn = false
+    
+    Button.Name = "LogoButton"
+    Button.Parent = UI
+    Button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Button.BackgroundTransparency = 0.2
+    Button.Position = UDim2.new(0.9, -25, 0.1, 0)
+    Button.Size = UDim2.new(0, 50, 0, 50)
+    Button.Image = "rbxassetid://90319448802378" -- Sử dụng ID của logo HT Hub
+    Button.ImageTransparency = 0.1
+    Button.Active = true
+    Button.Draggable = true
+    
+    UICorner.CornerRadius = UDim.new(1, 0)
+    UICorner.Parent = Button
+    
+    -- Khi click vào logo
+    Button.MouseButton1Click:Connect(function()
+        -- Ẩn logo
+        UI.Enabled = false
+        
+        -- Cập nhật trạng thái
+        isMinimized = false
+        
+        -- Hiển thị lại UI chính
+        pcall(function()
+            -- Đảm bảo Window là hợp lệ trước khi gọi
+            if Window then
+                -- Nếu có hàm Toggle, sử dụng nó thay vì gọi Minimize trực tiếp
+                if Window.Toggle then
+                    Window.Toggle()
+                elseif Window.Minimize then
+                    Window.Minimize()
+                end
+                
+                -- Đảm bảo UI chính được hiển thị
+                if Window.Frame then
+                    Window.Frame.Visible = true
+                end
+            end
+        end)
+        
+        -- Hiển thị thông báo (debug)
+        print("Đã nhấp vào logo, mở lại UI")
+    end)
+    
+    return UI
+end
+
+-- Hiển thị logo ngay khi script khởi động
+spawn(function()
+    OpenUI = CreateLogoUI()
+    if OpenUI then
+        OpenUI.Enabled = true -- Hiển thị logo ngay lập tức
+    end
+end)
