@@ -629,7 +629,7 @@ local Window = Fluent:CreateWindow({
     Size = UDim2.fromOffset(580, 460),
     Acrylic = true,
     Theme = ConfigSystem.CurrentConfig.UITheme or "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl
+   
 })
 
 -- Tạo tab Info
@@ -773,12 +773,7 @@ if not Window.Toggle then
     end
 end
 
--- Bắt sự kiện phím để kích hoạt minimize
-game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.LeftControl then
-        Window.Minimize()
-    end
-end)
+
 
 -- Tự động chọn tab Info khi khởi động
 Window:SelectTab(1) -- Chọn tab đầu tiên (Info)
