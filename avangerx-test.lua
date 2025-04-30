@@ -757,7 +757,7 @@ Window.Minimize = function()
     -- Hiển thị/ẩn logo dựa vào trạng thái
     if OpenUI then
         OpenUI.Enabled = isMinimized
-        
+    
         -- Đảm bảo logo vẫn hiển thị (phòng trường hợp bị ẩn do lỗi)
         if isMinimized then
             spawn(function()
@@ -766,6 +766,11 @@ Window.Minimize = function()
                     OpenUI.Enabled = true
                 end
             end)
+        else
+            -- Đảm bảo giao diện chính hiển thị lại khi không ở trạng thái minimize
+            if Window and Window.Frame then
+                Window.Frame.Visible = true
+            end
         end
     end
     
