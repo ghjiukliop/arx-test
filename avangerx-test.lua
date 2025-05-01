@@ -2405,7 +2405,7 @@ PrioritySection:AddToggle("AutoJoinPriorityToggle", {
 
             -- Hủy vòng lặp nếu có
             if autoJoinPriorityLoop then
-                autoJoinPriorityLoop:Disconnect()
+                autoJoinPriorityLoop:Disconnect()   -- Tải danh sách Priority List
                 autoJoinPriorityLoop = nil
             end
         end
@@ -2413,22 +2413,15 @@ PrioritySection:AddToggle("AutoJoinPriorityToggle", {
 })
 
 -- Tự động tải trạng thái Auto Join Priority và Priority List khi khởi động
+-- Tự động tải trạng thái Auto Join Priority và Priority List khi khởi động
 spawn(function()
     wait(1) -- Đợi game load
 
     -- Tải trạng thái Auto Join Priority
     autoJoinPriorityEnabled = ConfigSystem.CurrentConfig.AutoJoinPriority or false
-    local autoJoinPriorityToggle = PrioritySection:GetComponent("AutoJoinPriorityToggle")
-    if autoJoinPriorityToggle and autoJoinPriorityToggle.Set then
-        autoJoinPriorityToggle:Set(autoJoinPriorityEnabled)
-    end
 
     -- Tải danh sách Priority List
     priorityList = ConfigSystem.CurrentConfig.PriorityList or {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"}
-    local priorityListDropdown = PrioritySection:GetComponent("PriorityListDropdown")
-    if priorityListDropdown and priorityListDropdown.Set then
-        priorityListDropdown:Set(priorityList)
-    end
 
     print("Đã tải trạng thái Auto Join Priority và Priority List từ cấu hình.")
 end)
