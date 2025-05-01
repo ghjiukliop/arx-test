@@ -1165,40 +1165,7 @@ PrioritySection:AddParagraph({
     Content = "Select priority to for each mode."
 })
 
--- Thêm section Priority vào tab Priority
-local PrioritySection = PriorityTab:AddSection("Priority Settings")
 
--- Danh sách các mục có thể chọn
-local priorityTasks = {
-    "Story",
-    "Ranger Stage",
-    "Challenge",
-    "Egg Event"
-}
-
--- Dropdown để chọn Priority
-PrioritySection:AddDropdown("PriorityDropdown", {
-    Title = "Select Priority",
-    Values = priorityTasks,
-    Multi = false, -- Chỉ cho phép chọn một giá trị
-    Default = nil,
-    Callback = function(Value)
-        -- Thực hiện hành động ngay lập tức khi người chơi chọn
-        if Value == "Story" then
-            print("Thực hiện Story")
-            joinMap() -- Gọi hàm joinMap()
-        elseif Value == "Ranger Stage" then
-            print("Thực hiện Ranger Stage")
-            joinRangerStage() -- Gọi hàm joinRangerStage()
-        elseif Value == "Challenge" then
-            print("Thực hiện Challenge")
-            joinChallenge() -- Gọi hàm joinChallenge()
-        elseif Value == "Egg Event" then
-            print("Thực hiện Egg Event")
-            joinEasterEggEvent() -- Gọi hàm joinEasterEggEvent()
-        end
-    end
-})
 
 
 -- Thêm section Summon trong tab Shop
