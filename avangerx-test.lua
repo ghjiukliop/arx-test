@@ -2399,6 +2399,7 @@ PrioritySection:AddToggle("AutoJoinPriorityToggle", {
 })
 
 -- Tự động tải trạng thái Auto Join Priority và Priority List khi khởi động
+-- Tự động tải trạng thái Auto Join Priority và Priority List khi khởi động
 spawn(function()
     wait(1) -- Đợi game load
 
