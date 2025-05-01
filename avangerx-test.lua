@@ -1164,63 +1164,53 @@ PrioritySection:AddParagraph({
     Title = "Priority Features",
     Content = "Select priority to for each mode."
 })
+
+-- Thêm section Priority vào tab Priority
+local PrioritySection = PriorityTab:AddSection("Priority Settings")
+
+-- Các chế độ có thể chọn
 local modes = {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"}
 
--- Biến lưu trạng thái Priority cho từng chế độ
-local prioritySettings = {
-    Story = "Low",
-    RangerStage = "Low",
-    BossEvent = "Low",
-    Challenge = "Low",
-    EasterEgg = "Low"
+-- Biến lưu trạng thái cho từng dropdown
+local priorities = {
+    Priority1 = "Story",
+    Priority2 = "Ranger Stage",
+    Priority3 = "Boss Event",
+    Priority4 = "Challenge",
+    Priority5 = "Easter Egg"
 }
 
--- Hàm kiểm tra nếu tất cả các toggle Auto Join đã bật
-local function areAutoJoinsEnabled()
-    return autoJoinMapEnabled and autoJoinRangerEnabled and autoBossEventEnabled and autoChallengeEnabled and autoJoinEasterEggEnabled
-end
-
--- Hàm cập nhật trạng thái Priority
-local function updatePriority(mode, value)
-    if not areAutoJoinsEnabled() then
-        Fluent:Notify({
-            Title = "Priority Settings",
-            Content = "Vui lòng bật tất cả các Auto Join để sử dụng chức năng Priority.",
-            Duration = 3
-        })
-        return
-    end
-
-    prioritySettings[mode] = value
-    ConfigSystem.CurrentConfig["Priority_" .. mode] = value
+-- Hàm cập nhật trạng thái khi người dùng chọn
+local function updatePriority(priorityKey, value)
+    priorities[priorityKey] = value
+    ConfigSystem.CurrentConfig[priorityKey] = value
     ConfigSystem.SaveConfig()
 
     Fluent:Notify({
         Title = "Priority Updated",
-        Content = "Đã cập nhật Priority cho " .. mode .. " thành: " .. value,
+        Content = priorityKey .. " đã được cập nhật thành: " .. value,
         Duration = 2
     })
 end
 
--- Tạo 5 dropdown cho từng chế độ
-for _, mode in ipairs(modes) do
-    PrioritySection:AddDropdown(mode .. "PriorityDropdown", {
-        Title = "Priority for " .. mode,
-        Values = {"Low", "Medium", "High"},
+-- Tạo 5 dropdowns cho các Priority
+for i = 1, 5 do
+    PrioritySection:AddDropdown("Priority" .. i .. "Dropdown", {
+        Title = "Priority " .. i,
+        Values = modes,
         Multi = false,
-        Default = prioritySettings[mode],
+        Default = priorities["Priority" .. i],
         Callback = function(value)
-            updatePriority(mode, value)
+            updatePriority("Priority" .. i, value)
         end
     })
 end
 
 -- Thêm thông báo hướng dẫn
 PrioritySection:AddParagraph({
-    Title = "Lưu ý",
-    Content = "Chức năng Priority chỉ hoạt động khi tất cả các Auto Join đã được bật."
+    Title = "Hướng dẫn",
+    Content = "Chọn chế độ ưu tiên từ 1 đến 5. Mỗi ô chỉ được chọn một chế độ."
 })
-
 
 
 -- Thêm section Summon trong tab Shop
