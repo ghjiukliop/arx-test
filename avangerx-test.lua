@@ -642,7 +642,11 @@ local PlayTab = Window:AddTab({
     Title = "Play",
     Icon = "rbxassetid://7743871480"
 })
-
+-- Tạo tab Priority
+local PriorityTab = Window:AddTab({
+    Title = "Priority",
+    Icon = "rbxassetid://6031280882"
+})
 -- Tạo tab Event
 local EventTab = Window:AddTab({
     Title = "Event",
@@ -2291,7 +2295,102 @@ ChallengeSection:AddButton({
         end
     end
 })
+-- Priority tab
+-- Biến lưu trạng thái Auto Join Priority
+local autoJoinPriorityEnabled = ConfigSystem.CurrentConfig.AutoJoinPriority or false
+local autoJoinPriorityLoop = nil
 
+-- Biến lưu danh sách ưu tiên
+local priorityList = ConfigSystem.CurrentConfig.PriorityList or {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"}
+
+local function autoJoinPriority()
+    if not autoJoinPriorityEnabled or isPlayerInMap() then
+        return
+    end
+
+    -- Duyệt qua danh sách ưu tiên và tham gia chế độ đầu tiên có thể
+    for _, mode in ipairs(priorityList) do
+        if mode == "Story" and autoJoinMapEnabled then
+            joinMap()
+            break
+        elseif mode == "Ranger Stage" and autoJoinRangerEnabled then
+            joinRangerStage()
+            break
+        elseif mode == "Boss Event" and autoBossEventEnabled then
+            joinBossEvent()
+            break
+        elseif mode == "Challenge" and autoChallengeEnabled then
+            joinChallenge()
+            break
+        elseif mode == "Easter Egg" and autoJoinEasterEggEnabled then
+            joinEasterEggEvent()
+            break
+        end
+    end
+end
+local PrioritySection = PriorityTab:AddSection("Auto Join Priority")
+
+-- Dropdown để sắp xếp thứ tự ưu tiên
+PrioritySection:AddDropdown("PriorityListDropdown", {
+    Title = "Set Priority Order",
+    Values = {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"},
+    Multi = true,
+    Default = priorityList,
+    Callback = function(Values)
+        priorityList = Values
+        ConfigSystem.CurrentConfig.PriorityList = Values
+        ConfigSystem.SaveConfig()
+        
+        Fluent:Notify({
+            Title = "Priority Order",
+            Content = "Đã cập nhật thứ tự ưu tiên.",
+            Duration = 3
+        })
+    end
+})
+
+-- Toggle Auto Join Priority
+PrioritySection:AddToggle("AutoJoinPriorityToggle", {
+    Title = "Enable Auto Join Priority",
+    Default = autoJoinPriorityEnabled,
+    Callback = function(Value)
+        autoJoinPriorityEnabled = Value
+        ConfigSystem.CurrentConfig.AutoJoinPriority = Value
+        ConfigSystem.SaveConfig()
+
+        if Value then
+            Fluent:Notify({
+                Title = "Auto Join Priority",
+                Content = "Auto Join Priority đã được bật.",
+                Duration = 3
+            })
+
+            -- Tạo vòng lặp Auto Join Priority
+            if autoJoinPriorityLoop then
+                autoJoinPriorityLoop:Disconnect()
+                autoJoinPriorityLoop = nil
+            end
+
+            spawn(function()
+                while autoJoinPriorityEnabled and wait(5) do
+                    autoJoinPriority()
+                end
+            end)
+        else
+            Fluent:Notify({
+                Title = "Auto Join Priority",
+                Content = "Auto Join Priority đã được tắt.",
+                Duration = 3
+            })
+
+            -- Hủy vòng lặp nếu có
+            if autoJoinPriorityLoop then
+                autoJoinPriorityLoop:Disconnect()
+                autoJoinPriorityLoop = nil
+            end
+        end
+    end
+})
 -- Thêm section In-Game Controls
 local InGameSection = InGameTab:AddSection("Game Controls")
 
