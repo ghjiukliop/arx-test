@@ -1205,6 +1205,69 @@ for i = 1, 5 do
         end
     })
 end
+-- Thêm nút Toggle Auto Join Priority vào Priority Section
+local autoJoinPriorityEnabled = false -- Biến lưu trạng thái Auto Join Priority
+local autoJoinPriorityLoop = nil -- Vòng lặp Auto Join Priority
+
+-- Hàm để join chế độ dựa trên thứ tự ưu tiên
+local function joinPriorityMode()
+    for i = 1, 5 do
+        local mode = priorities["Priority" .. i]
+        if mode then
+            print("Đang join chế độ: " .. mode)
+            joinMode(mode) -- Gọi hàm joinMode để tham gia chế độ
+            wait(10) -- Đợi 10 giây trước khi kiểm tra chế độ tiếp theo
+            break
+        end
+    end
+end
+
+-- Toggle Auto Join Priority
+PrioritySection:AddToggle("AutoJoinPriorityToggle", {
+    Title = "Auto Join Priority",
+    Default = autoJoinPriorityEnabled,
+    Callback = function(Value)
+        autoJoinPriorityEnabled = Value
+
+        if autoJoinPriorityEnabled then
+            Fluent:Notify({
+                Title = "Auto Join Priority",
+                Content = "Auto Join Priority đã được bật. Sẽ tự động tham gia dựa trên thứ tự ưu tiên.",
+                Duration = 3
+            })
+
+            -- Hủy vòng lặp cũ nếu có
+            if autoJoinPriorityLoop then
+                autoJoinPriorityLoop:Disconnect()
+                autoJoinPriorityLoop = nil
+            end
+
+            -- Tạo vòng lặp mới
+            autoJoinPriorityLoop = spawn(function()
+                while autoJoinPriorityEnabled do
+                    if not isPlayerInMap() then
+                        joinPriorityMode() -- Thực hiện join theo thứ tự ưu tiên
+                    else
+                        print("Đang ở trong map, chờ rời khỏi map để tiếp tục.")
+                    end
+                    wait(5) -- Kiểm tra mỗi 5 giây
+                end
+            end)
+        else
+            Fluent:Notify({
+                Title = "Auto Join Priority",
+                Content = "Auto Join Priority đã được tắt.",
+                Duration = 3
+            })
+
+            -- Hủy vòng lặp nếu có
+            if autoJoinPriorityLoop then
+                autoJoinPriorityLoop:Disconnect()
+                autoJoinPriorityLoop = nil
+            end
+        end
+    end
+})
 
 -- Thêm thông báo hướng dẫn
 PrioritySection:AddParagraph({
