@@ -1292,7 +1292,126 @@ PrioritySection:AddParagraph({
     Content = "Chọn chế độ ưu tiên từ 1 đến 5. Mỗi ô chỉ được chọn một chế độ. Không được trùng lặp!"
 })
 
+-- Các chế độ có thể chọn
+local modes = {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"}
 
+-- Biến lưu trạng thái cho từng dropdown và toggle
+local priorities = {
+    Priority1 = ConfigSystem.CurrentConfig.Priority1 or "Story",
+    Priority2 = ConfigSystem.CurrentConfig.Priority2 or "Ranger Stage",
+    Priority3 = ConfigSystem.CurrentConfig.Priority3 or "Boss Event",
+    Priority4 = ConfigSystem.CurrentConfig.Priority4 or "Challenge",
+    Priority5 = ConfigSystem.CurrentConfig.Priority5 or "Easter Egg"
+}
+local autoJoinPriorityEnabled = ConfigSystem.CurrentConfig.AutoJoinPriority or false
+
+-- Hàm kiểm tra trùng lặp chế độ
+local function isDuplicatePriority(value, priorityKey)
+    for key, mode in pairs(priorities) do
+        if key ~= priorityKey and mode == value then
+            return true
+        end
+    end
+    return false
+end
+
+-- Hàm cập nhật trạng thái khi người dùng chọn
+local function updatePriority(priorityKey, value)
+    if isDuplicatePriority(value, priorityKey) then
+        Fluent:Notify({
+            Title = "Priority Error",
+            Content = "Chế độ '" .. value .. "' đã được chọn ở ưu tiên khác!",
+            Duration = 3
+        })
+        return
+    end
+
+    priorities[priorityKey] = value
+    ConfigSystem.CurrentConfig[priorityKey] = value
+    ConfigSystem.SaveConfig()
+
+    Fluent:Notify({
+        Title = "Priority Updated",
+        Content = priorityKey .. " đã được cập nhật thành: " .. value,
+        Duration = 2
+    })
+end
+
+-- Tạo 5 dropdowns cho các Priority
+for i = 1, 5 do
+    PrioritySection:AddDropdown("Priority" .. i .. "Dropdown", {
+        Title = "Priority " .. i,
+        Values = modes,
+        Multi = false,
+        Default = priorities["Priority" .. i],
+        Callback = function(value)
+            updatePriority("Priority" .. i, value)
+        end
+    })
+end
+
+-- Hàm để thực hiện Auto Join theo thứ tự ưu tiên
+local function joinPriorityMode()
+    for i = 1, 5 do
+        local mode = priorities["Priority" .. i]
+        if mode then
+            print("Đang thử Auto Join với chế độ ưu tiên: " .. mode)
+
+            local joined = false
+            if mode == "Story" and joinMap then
+                joined = joinMap()
+            elseif mode == "Ranger Stage" and joinRangerStage then
+                joined = joinRangerStage()
+            elseif mode == "Boss Event" and joinBossEvent then
+                joined = joinBossEvent()
+            elseif mode == "Challenge" and joinChallenge then
+                joined = joinChallenge()
+            elseif mode == "Easter Egg" and joinEasterEggEvent then
+                joined = joinEasterEggEvent()
+            end
+
+            -- Nếu đã join thành công (hàm trả về true), thì thoát khỏi vòng lặp
+            if joined then
+                print("✅ Đã join thành công chế độ: " .. mode)
+                break
+            else
+                print("⚠️ Không thể join chế độ: " .. mode .. ", thử chế độ tiếp theo...")
+            end
+        end
+    end
+end
+
+-- Thêm Toggle Auto Join Priority
+PrioritySection:AddToggle("AutoJoinPriorityToggle", {
+    Title = "Auto Join Priority",
+    Default = autoJoinPriorityEnabled,
+    Callback = function(Value)
+        autoJoinPriorityEnabled = Value
+        ConfigSystem.CurrentConfig.AutoJoinPriority = Value
+        ConfigSystem.SaveConfig()
+
+        if Value then
+            Fluent:Notify({
+                Title = "Auto Join Priority",
+                Content = "Auto Join Priority đã được bật",
+                Duration = 3
+            })
+
+            -- Tạo vòng lặp Auto Join Priority
+            spawn(function()
+                while autoJoinPriorityEnabled and wait(5) do
+                    joinPriorityMode()
+                end
+            end)
+        else
+            Fluent:Notify({
+                Title = "Auto Join Priority",
+                Content = "Auto Join Priority đã được tắt",
+                Duration = 3
+            })
+        end
+    end
+})
 
 -- Thêm section Summon trong tab Shop
 local SummonSection = ShopTab:AddSection("Summon")
