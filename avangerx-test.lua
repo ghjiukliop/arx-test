@@ -16,6 +16,49 @@ KeySystem.Keys = {
     "RANGER_PRO_ACCESS_9841",        -- Key 2
     "PREMIUM_ANIME_ACCESS_3619"      -- Key 3
 }
+-- Hàm hiển thị logo
+local function showLogo()
+    local ScreenGui = Instance.new("ScreenGui")
+    local Logo = Instance.new("ImageLabel")
+    local UICorner = Instance.new("UICorner")
+
+    -- Kiểm tra môi trường
+    if syn and syn.protect_gui then
+        syn.protect_gui(ScreenGui)
+        ScreenGui.Parent = game:GetService("CoreGui")
+    elseif gethui then
+        ScreenGui.Parent = gethui()
+    else
+        ScreenGui.Parent = game:GetService("CoreGui")
+    end
+
+    ScreenGui.Name = "StartupLogo"
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.ResetOnSpawn = false
+
+    Logo.Name = "Logo"
+    Logo.Parent = ScreenGui
+    Logo.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Logo.BackgroundTransparency = 0.2
+    Logo.Position = UDim2.new(0.5, -100, 0.5, -100)
+    Logo.Size = UDim2.new(0, 200, 0, 200)
+    Logo.Image = "rbxassetid://90319448802378" -- Thay bằng ID logo của bạn
+    Logo.ImageTransparency = 0.1
+
+    UICorner.CornerRadius = UDim.new(0.1, 0)
+    UICorner.Parent = Logo
+
+    -- Tự động ẩn logo sau 5 giây
+    task.delay(5, function()
+        if ScreenGui and ScreenGui.Parent then
+            ScreenGui:Destroy()
+        end
+    end)
+end
+
+-- Gọi hàm hiển thị logo
+showLogo()
+
 KeySystem.KeyFileName = "htkey_anime_rangers.txt"
 KeySystem.WebhookURL = "https://discord.com/api/webhooks/1348673902506934384/ZRMIlRzlQq9Hfnjgpu96GGF7jCG8mG1qqfya3ErW9YvbuIKOaXVomOgjg4tM_Xk57yAK" -- Thay bằng webhook của bạn
 
@@ -4120,45 +4163,3 @@ if keyAuthenticated then
     return true
 end
 
--- Hàm hiển thị logo
-local function showLogo()
-    local ScreenGui = Instance.new("ScreenGui")
-    local Logo = Instance.new("ImageLabel")
-    local UICorner = Instance.new("UICorner")
-
-    -- Kiểm tra môi trường
-    if syn and syn.protect_gui then
-        syn.protect_gui(ScreenGui)
-        ScreenGui.Parent = game:GetService("CoreGui")
-    elseif gethui then
-        ScreenGui.Parent = gethui()
-    else
-        ScreenGui.Parent = game:GetService("CoreGui")
-    end
-
-    ScreenGui.Name = "StartupLogo"
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.ResetOnSpawn = false
-
-    Logo.Name = "Logo"
-    Logo.Parent = ScreenGui
-    Logo.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    Logo.BackgroundTransparency = 0.2
-    Logo.Position = UDim2.new(0.5, -100, 0.5, -100)
-    Logo.Size = UDim2.new(0, 200, 0, 200)
-    Logo.Image = "rbxassetid://90319448802378" -- Thay bằng ID logo của bạn
-    Logo.ImageTransparency = 0.1
-
-    UICorner.CornerRadius = UDim.new(0.1, 0)
-    UICorner.Parent = Logo
-
-    -- Tự động ẩn logo sau 5 giây
-    task.delay(5, function()
-        if ScreenGui and ScreenGui.Parent then
-            ScreenGui:Destroy()
-        end
-    end)
-end
-
--- Gọi hàm hiển thị logo ngay khi script chạy
-showLogo()
