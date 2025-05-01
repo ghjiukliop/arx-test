@@ -16,49 +16,6 @@ KeySystem.Keys = {
     "RANGER_PRO_ACCESS_9841",        -- Key 2
     "PREMIUM_ANIME_ACCESS_3619"      -- Key 3
 }
--- Hàm hiển thị logo
-local function showLogo()
-    local ScreenGui = Instance.new("ScreenGui")
-    local Logo = Instance.new("ImageLabel")
-    local UICorner = Instance.new("UICorner")
-
-    -- Kiểm tra môi trường
-    if syn and syn.protect_gui then
-        syn.protect_gui(ScreenGui)
-        ScreenGui.Parent = game:GetService("CoreGui")
-    elseif gethui then
-        ScreenGui.Parent = gethui()
-    else
-        ScreenGui.Parent = game:GetService("CoreGui")
-    end
-
-    ScreenGui.Name = "StartupLogo"
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.ResetOnSpawn = false
-
-    Logo.Name = "Logo"
-    Logo.Parent = ScreenGui
-    Logo.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    Logo.BackgroundTransparency = 0.2
-    Logo.Position = UDim2.new(0.5, -100, 0.5, -100)
-    Logo.Size = UDim2.new(0, 200, 0, 200)
-    Logo.Image = "rbxassetid://90319448802378" -- Thay bằng ID logo của bạn
-    Logo.ImageTransparency = 0.1
-
-    UICorner.CornerRadius = UDim.new(0.1, 0)
-    UICorner.Parent = Logo
-
-    -- Tự động ẩn logo sau 5 giây
-    task.delay(5, function()
-        if ScreenGui and ScreenGui.Parent then
-            ScreenGui:Destroy()
-        end
-    end)
-end
-
--- Gọi hàm hiển thị logo
-showLogo()
-
 KeySystem.KeyFileName = "htkey_anime_rangers.txt"
 KeySystem.WebhookURL = "https://discord.com/api/webhooks/1348673902506934384/ZRMIlRzlQq9Hfnjgpu96GGF7jCG8mG1qqfya3ErW9YvbuIKOaXVomOgjg4tM_Xk57yAK" -- Thay bằng webhook của bạn
 
@@ -686,11 +643,6 @@ local PlayTab = Window:AddTab({
     Icon = "rbxassetid://7743871480"
 })
 
--- Tạo tab Priority 
-local PriorityTab = Window:AddTab({
-    Title = "Priority",
-    Icon = "rbxassetid://7743871480" -- Thay bằng icon phù hợp
-})
 -- Tạo tab Event
 local EventTab = Window:AddTab({
     Title = "Event",
@@ -1197,141 +1149,6 @@ StorySection:AddButton({
         print("Trạng thái: " .. statusText)
     end
 })
-
-
--- Thêm section Priority vào tab Priority
-local PrioritySection = PriorityTab:AddSection("Priority Settings")
-
--- Ví dụ: Thêm nội dung vào tab Priority
-PrioritySection:AddParagraph({
-    Title = "Priority Features",
-    Content = "Select priority to for each mode."
-})
--- Biến lưu trạng thái Auto Join Priority
-local autoJoinPriorityEnabled = ConfigSystem.CurrentConfig.AutoJoinPriority or false
-local autoJoinPriorityLoop = nil
--- Thêm section Priority vào tab Priority
-local PrioritySection = PriorityTab:AddSection("Priority Settings")
-
--- Các chế độ có thể chọn
-local modes = {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"}
-
--- Biến lưu trạng thái cho từng dropdown
-local priorities = {
-    Priority1 = "Story",
-    Priority2 = "Ranger Stage",
-    Priority3 = "Boss Event",
-    Priority4 = "Challenge",
-    Priority5 = "Easter Egg"
-}
-
--- Hàm cập nhật trạng thái khi người dùng chọn
-local function updatePriority(priorityKey, value)
-    priorities[priorityKey] = value
-    ConfigSystem.CurrentConfig[priorityKey] = value
-    ConfigSystem.SaveConfig()
-
-    Fluent:Notify({
-        Title = "Priority Updated",
-        Content = priorityKey .. " đã được cập nhật thành: " .. value,
-        Duration = 2
-    })
-end
-
--- Tạo 5 dropdowns cho các Priority
-for i = 1, 5 do
-    PrioritySection:AddDropdown("Priority" .. i .. "Dropdown", {
-        Title = "Priority " .. i,
-        Values = modes,
-        Multi = false,
-        Default = priorities["Priority" .. i],
-        Callback = function(value)
-            updatePriority("Priority" .. i, value)
-        end
-    })
-end
-local function autoJoinPriority()
-    if not autoJoinPriorityEnabled or isPlayerInMap() then
-        return
-    end
-
-    -- Lấy danh sách ưu tiên từ cấu hình
-    local priorityList = {
-        ConfigSystem.CurrentConfig.Priority1,
-        ConfigSystem.CurrentConfig.Priority2,
-        ConfigSystem.CurrentConfig.Priority3,
-        ConfigSystem.CurrentConfig.Priority4,
-        ConfigSystem.CurrentConfig.Priority5
-    }
-
-    -- Duyệt qua danh sách ưu tiên và tham gia chế độ đầu tiên có thể
-    for _, mode in ipairs(priorityList) do
-        if mode == "Story" and autoJoinMapEnabled then
-            joinMap()
-            break
-        elseif mode == "Ranger Stage" and autoJoinRangerEnabled then
-            joinRangerStage()
-            break
-        elseif mode == "Boss Event" and autoBossEventEnabled then
-            joinBossEvent()
-            break
-        elseif mode == "Challenge" and autoChallengeEnabled then
-            joinChallenge()
-            break
-        elseif mode == "Easter Egg" and autoJoinEasterEggEnabled then
-            joinEasterEggEvent()
-            break
-        end
-    end
-end
-PrioritySection:AddToggle("AutoJoinPriorityToggle", {
-    Title = "Auto Join Priority",
-    Default = autoJoinPriorityEnabled,
-    Callback = function(Value)
-        autoJoinPriorityEnabled = Value
-        ConfigSystem.CurrentConfig.AutoJoinPriority = Value
-        ConfigSystem.SaveConfig()
-
-        if Value then
-            Fluent:Notify({
-                Title = "Auto Join Priority",
-                Content = "Auto Join Priority đã được bật. Sẽ tự động tham gia chế độ theo thứ tự ưu tiên.",
-                Duration = 3
-            })
-
-            -- Tạo vòng lặp Auto Join Priority
-            if autoJoinPriorityLoop then
-                autoJoinPriorityLoop:Disconnect()
-                autoJoinPriorityLoop = nil
-            end
-
-            spawn(function()
-                while autoJoinPriorityEnabled and wait(5) do
-                    autoJoinPriority()
-                end
-            end)
-        else
-            Fluent:Notify({
-                Title = "Auto Join Priority",
-                Content = "Auto Join Priority đã được tắt.",
-                Duration = 3
-            })
-
-            -- Hủy vòng lặp nếu có
-            if autoJoinPriorityLoop then
-                autoJoinPriorityLoop:Disconnect()
-                autoJoinPriorityLoop = nil
-            end
-        end
-    end
-})
--- Thêm thông báo hướng dẫn
-PrioritySection:AddParagraph({
-    Title = "Hướng dẫn",
-    Content = "Chọn chế độ ưu tiên từ 1 đến 5. Mỗi ô chỉ được chọn một chế độ."
-    
-})
-
 
 -- Thêm section Summon trong tab Shop
 local SummonSection = ShopTab:AddSection("Summon")
@@ -3258,7 +3075,39 @@ AFKSection:AddButton({
         })
     end
 })
+-- Thêm toggle Auto Execute Script vào tab Settings
+SettingsTab:AddToggle("AutoExecuteScriptToggle", {
+    Title = "Auto Execute Script",
+    Default = ConfigSystem.CurrentConfig.AutoExecuteScript or false,
+    Callback = function(Value)
+        ConfigSystem.CurrentConfig.AutoExecuteScript = Value
+        ConfigSystem.SaveConfig()
+        
+        if Value then
+            Fluent:Notify({
+                Title = "Auto Execute Script",
+                Content = "Auto Execute Script đã được bật. Script sẽ tự động chạy khi đổi server.",
+                Duration = 3
+            })
+        else
+            Fluent:Notify({
+                Title = "Auto Execute Script",
+                Content = "Auto Execute Script đã được tắt.",
+                Duration = 3
+            })
+        end
+    end
+})
 
+-- Kiểm tra và tự động thực thi script nếu Auto Execute Script được bật
+spawn(function()
+    wait(1) -- Đợi game load
+    if ConfigSystem.CurrentConfig.AutoExecuteScript then
+        print("Auto Execute Script đang chạy...")
+        -- Thực hiện hành động tự động chạy script tại đây
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/HTscripthub/AnimeRangerX/refs/heads/main/AnimeRangers.lua"))()
+    end
+end)
 
 -- Tự động đồng bộ trạng thái từ game khi khởi động
 spawn(function()
@@ -4233,9 +4082,15 @@ WebhookSection:AddButton({
 
 -- Khởi động vòng lặp kiểm tra game kết thúc
 setupWebhookMonitor()
-
-if keyAuthenticated then
-    ScreenGui:Destroy() -- Xóa UI Key System
-    return true
+-- Hiển thị logo ngay khi script chạy
+if not OpenUI then
+    OpenUI = CreateLogoUI()
+end
+-- filepath: c:\Users\TUF\OneDrive\coding stuff\arx\arx not yet.lua
+if Window and Window.Frame and Window.Frame.MinimizeButton then
+    Window.Frame.MinimizeButton.Visible = false
 end
 
+if OpenUI then
+    OpenUI.Enabled = true -- Hiển thị logo ngay lập tức
+end
