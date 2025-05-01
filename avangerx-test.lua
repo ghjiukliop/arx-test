@@ -1165,9 +1165,6 @@ PrioritySection:AddParagraph({
     Content = "Select priority to for each mode."
 })
 
--- Thêm section Priority vào tab Priority
-local PrioritySection = PriorityTab:AddSection("Priority Settings")
-
 -- Danh sách các mục có thể chọn
 local priorityTasks = {
     "Story",
@@ -1184,6 +1181,21 @@ local selectedPriority = {
     ["Priority 4"] = nil,
     ["Priority 5"] = nil
 }
+
+-- Tạo dropdown cho từng Priority
+for priorityName, _ in pairs(selectedPriority) do
+    PrioritySection:AddDropdown(priorityName, {
+        Title = priorityName,
+        Values = priorityTasks,
+        Multi = false, -- Chỉ cho phép chọn một giá trị
+        Default = nil,
+        Callback = function(Value)
+            -- Cập nhật giá trị cho Priority
+            selectedPriority[priorityName] = Value
+            print(priorityName .. " đã chọn: " .. Value)
+        end
+    })
+end
 
 -- Hàm thực hiện các function theo thứ tự ưu tiên
 local function executePriorityTasks()
@@ -1202,21 +1214,6 @@ local function executePriorityTasks()
             joinEasterEggEvent() -- Gọi hàm joinEasterEggEvent()
         end
     end
-end
-
--- Tạo dropdown cho từng Priority
-for priorityName, _ in pairs(selectedPriority) do
-    PrioritySection:AddDropdown(priorityName, {
-        Title = priorityName,
-        Values = priorityTasks,
-        Multi = false,
-        Default = nil,
-        Callback = function(Value)
-            -- Cập nhật giá trị cho Priority
-            selectedPriority[priorityName] = Value
-            print(priorityName .. " đã chọn: " .. Value)
-        end
-    })
 end
 
 -- Nút để bắt đầu thực hiện các function theo thứ tự ưu tiên
