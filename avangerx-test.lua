@@ -2303,6 +2303,7 @@ local autoJoinPriorityLoop = nil
 -- Biến lưu danh sách ưu tiên
 local priorityList = ConfigSystem.CurrentConfig.PriorityList or {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"}
 
+-- Hàm Auto Join Priority
 local function autoJoinPriority()
     if not autoJoinPriorityEnabled or isPlayerInMap() then
         return
@@ -2310,25 +2311,26 @@ local function autoJoinPriority()
 
     -- Duyệt qua danh sách ưu tiên và tham gia chế độ đầu tiên có thể
     for _, mode in ipairs(priorityList) do
-        if mode == "Story" and autoJoinMapEnabled then
+        if mode == "Story" then
             joinMap()
             break
-        elseif mode == "Ranger Stage" and autoJoinRangerEnabled then
+        elseif mode == "Ranger Stage" then
             joinRangerStage()
             break
-        elseif mode == "Boss Event" and autoBossEventEnabled then
+        elseif mode == "Boss Event" then
             joinBossEvent()
             break
-        elseif mode == "Challenge" and autoChallengeEnabled then
+        elseif mode == "Challenge" then
             joinChallenge()
             break
-        elseif mode == "Easter Egg" and autoJoinEasterEggEnabled then
+        elseif mode == "Easter Egg" then
             joinEasterEggEvent()
             break
         end
     end
 end
 
+-- Tạo giao diện cho Auto Join Priority
 local PrioritySection = PriorityTab:AddSection("Auto Join Priority")
 
 -- Dropdown để sắp xếp thứ tự ưu tiên
