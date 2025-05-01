@@ -2296,7 +2296,8 @@ ChallengeSection:AddButton({
     end
 })
 -- Priority tab
- -- Biến lưu trạng thái Auto Join Priority
+ -- Priority tab
+-- Biến lưu trạng thái Auto Join Priority
 local autoJoinPriorityEnabled = ConfigSystem.CurrentConfig.AutoJoinPriority or false
 local autoJoinPriorityLoop = nil
 
@@ -2343,7 +2344,7 @@ PrioritySection:AddDropdown("PriorityListDropdown", {
         priorityList = Values
         ConfigSystem.CurrentConfig.PriorityList = Values
         ConfigSystem.SaveConfig()
-        
+
         Fluent:Notify({
             Title = "Priority Order",
             Content = "Đã cập nhật thứ tự ưu tiên.",
@@ -2399,7 +2400,6 @@ PrioritySection:AddToggle("AutoJoinPriorityToggle", {
 })
 
 -- Tự động tải trạng thái Auto Join Priority và Priority List khi khởi động
--- Tự động tải trạng thái Auto Join Priority và Priority List khi khởi động
 spawn(function()
     wait(1) -- Đợi game load
 
@@ -2419,7 +2419,7 @@ spawn(function()
 
     print("Đã tải trạng thái Auto Join Priority và Priority List từ cấu hình.")
 end)
---
+--end priority
 -- Thêm section In-Game Controls
 local InGameSection = InGameTab:AddSection("Game Controls")
 
