@@ -1206,36 +1206,44 @@ for i = 1, 5 do
     })
 end
 
--- Hàm để thực hiện join dựa trên chế độ
-local function joinMode(mode)
-    if mode == "Story" then
-        autoJoinMapEnabled = true
-        joinMap()
-    elseif mode == "Ranger Stage" then
-        autoJoinRangerEnabled = true
-        joinRangerStage()
-    elseif mode == "Boss Event" then
-        autoBossEventEnabled = true
-        joinBossEvent()
-    elseif mode == "Challenge" then
-        autoChallengeEnabled = true
-        joinChallenge()
-    elseif mode == "Easter Egg" then
-        autoJoinEasterEggEnabled = true
-        joinEasterEggEvent()
-    else
-        warn("Chế độ không hợp lệ: " .. tostring(mode))
-    end
-end
-
 -- Hàm để thực hiện Auto Join theo thứ tự ưu tiên
 local function joinPriorityMode()
     for i = 1, 5 do
         local mode = priorities["Priority" .. i]
         if mode then
             print("Đang thực hiện Auto Join cho chế độ: " .. mode)
-            joinMode(mode)
-            wait(10) -- Đợi 10 giây trước khi kiểm tra chế độ tiếp theo
+            
+            -- Gọi hàm tương ứng với chế độ
+            if mode == "Story" then
+                if not autoJoinMapEnabled then
+                    autoJoinMapEnabled = true
+                    joinMap()
+                end
+            elseif mode == "Ranger Stage" then
+                if not autoJoinRangerEnabled then
+                    autoJoinRangerEnabled = true
+                    joinRangerStage()
+                end
+            elseif mode == "Boss Event" then
+                if not autoBossEventEnabled then
+                    autoBossEventEnabled = true
+                    joinBossEvent()
+                end
+            elseif mode == "Challenge" then
+                if not autoChallengeEnabled then
+                    autoChallengeEnabled = true
+                    joinChallenge()
+                end
+            elseif mode == "Easter Egg" then
+                if not autoJoinEasterEggEnabled then
+                    autoJoinEasterEggEnabled = true
+                    joinEasterEggEvent()
+                end
+            else
+                warn("Chế độ không hợp lệ: " .. tostring(mode))
+            end
+            
+            -- Dừng kiểm tra sau khi thực hiện chế độ ưu tiên đầu tiên
             break
         end
     end
