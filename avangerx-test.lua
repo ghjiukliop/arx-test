@@ -1168,19 +1168,17 @@ PrioritySection:AddParagraph({
 -- Thêm section Priority vào tab Priority
 local PrioritySection = PriorityTab:AddSection("Priority Settings")
 
-
 -- Các chế độ có thể chọn
 local modes = {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"}
 
--- Biến lưu trạng thái cho từng dropdown và toggle
+-- Biến lưu trạng thái cho từng dropdown
 local priorities = {
-    Priority1 = ConfigSystem.CurrentConfig.Priority1 or "Story",
-    Priority2 = ConfigSystem.CurrentConfig.Priority2 or "Ranger Stage",
-    Priority3 = ConfigSystem.CurrentConfig.Priority3 or "Boss Event",
-    Priority4 = ConfigSystem.CurrentConfig.Priority4 or "Challenge",
-    Priority5 = ConfigSystem.CurrentConfig.Priority5 or "Easter Egg"
+    Priority1 = "Story",
+    Priority2 = "Ranger Stage",
+    Priority3 = "Boss Event",
+    Priority4 = "Challenge",
+    Priority5 = "Easter Egg"
 }
-local autoJoinPriorityEnabled = ConfigSystem.CurrentConfig.AutoJoinPriority or false
 
 -- Hàm cập nhật trạng thái khi người dùng chọn
 local function updatePriority(priorityKey, value)
@@ -1208,61 +1206,11 @@ for i = 1, 5 do
     })
 end
 
--- Hàm để thực hiện Auto Join theo thứ tự ưu tiên
-local function joinPriorityMode()
-    for i = 1, 5 do
-        local mode = priorities["Priority" .. i]
-        if mode then
-            print("Đang thử Auto Join với chế độ ưu tiên: " .. mode)
-
-            if mode == "Story" and joinMap then
-                joinMap()
-            elseif mode == "Ranger Stage" and joinRangerStage then
-                joinRangerStage()
-            elseif mode == "Boss Event" and joinBossEvent then
-                joinBossEvent()
-            elseif mode == "Challenge" and joinChallenge then
-                joinChallenge()
-            elseif mode == "Easter Egg" and joinEasterEggEvent then
-                joinEasterEggEvent()
-            end
-
-            -- Thoát khỏi vòng lặp sau khi thực hiện chế độ đầu tiên
-            break
-        end
-    end
-end
-
--- Thêm Toggle Auto Join Priority
-PrioritySection:AddToggle("AutoJoinPriorityToggle", {
-    Title = "Auto Join Priority",
-    Default = autoJoinPriorityEnabled,
-    Callback = function(Value)
-        autoJoinPriorityEnabled = Value
-        ConfigSystem.CurrentConfig.AutoJoinPriority = Value
-        ConfigSystem.SaveConfig()
-
-        if Value then
-            Fluent:Notify({
-                Title = "Auto Join Priority",
-                Content = "Auto Join Priority đã được bật",
-                Duration = 3
-            })
-
-            -- Tạo vòng lặp Auto Join Priority
-            spawn(function()
-                while autoJoinPriorityEnabled and wait(5) do
-                    joinPriorityMode()
-                end
-            end)
-        else
-            Fluent:Notify({
-                Title = "Auto Join Priority",
-                Content = "Auto Join Priority đã được tắt",
-                Duration = 3
-            })
-        end
-    end
+-- Thêm thông báo hướng dẫn
+PrioritySection:AddParagraph({
+    Title = "Hướng dẫn",
+    Content = "Chọn chế độ ưu tiên từ 1 đến 5. Mỗi ô chỉ được chọn một chế độ."
+    
 })
 
 
