@@ -1169,6 +1169,87 @@ PrioritySection:AddParagraph({
 local PrioritySection = PriorityTab:AddSection("Priority Settings")
 
 
+-- PRIORITY AUTO JOIN SETUP
+
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local Player = Players.LocalPlayer
+
+local ConfigFile = "AutoJoinPrioritySettings.json"
+local Config = {
+    Priority = {
+        Slot1 = "Story",
+        Slot2 = "Ranger Stage",
+        Slot3 = "Boss Event",
+        Slot4 = "Challenge",
+        Slot5 = "Easter Egg"
+    },
+    AutoJoinPriorityEnabled = false
+}
+
+-- Load config if exists
+if isfile(ConfigFile) then
+    local success, result = pcall(function()
+        return HttpService:JSONDecode(readfile(ConfigFile))
+    end)
+    if success and type(result) == "table" then
+        Config = result
+    end
+end
+
+-- Save config
+local function saveConfig()
+    writefile(ConfigFile, HttpService:JSONEncode(Config))
+end
+
+-- GUI Setup
+local PriorityModes = {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"}
+local PriorityDropdowns = {}
+
+local PriorityTab = Tabs.Priority or Tabs:CreateTab("Priority")
+
+for i = 1, 5 do
+    PriorityDropdowns[i] = PriorityTab:AddDropdown("PrioritySlot" .. i, {
+        Title = "Priority Slot " .. i,
+        Values = PriorityModes,
+        Default = Config.Priority["Slot" .. i],
+        Multi = false,
+        Callback = function(value)
+            Config.Priority["Slot" .. i] = value
+            saveConfig()
+        end
+    })
+end
+
+-- Toggle for auto join
+PriorityTab:AddToggle("AutoJoinPriorityToggle", {
+    Title = "Auto Join by Priority",
+    Default = Config.AutoJoinPriorityEnabled,
+    Callback = function(state)
+        Config.AutoJoinPriorityEnabled = state
+        saveConfig()
+        Fluent:Notify({
+            Title = "Auto Join Priority",
+            Content = state and "Đã bật chế độ tự động join theo thứ tự ưu tiên." or "Đã tắt chế độ tự động join theo thứ tự ưu tiên.",
+            Duration = 4
+        })
+    end
+})
+
+-- Auto Join Handler (Placeholder for actual join logic)
+spawn(function()
+    while task.wait(2) do
+        if Config.AutoJoinPriorityEnabled then
+            for i = 1, 5 do
+                local mode = Config.Priority["Slot" .. i]
+                print("Thử join mode:", mode)
+                -- Gọi hàm join tương ứng với từng mode ở đây
+                -- Ví dụ: if mode == "Story" then JoinStoryMode() end
+                break -- Chỉ join mode đầu tiên trong danh sách (không thử tiếp nếu thất bại)
+            end
+        end
+    end
+end)
 
 
 
