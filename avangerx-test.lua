@@ -3093,39 +3093,7 @@ AFKSection:AddButton({
         })
     end
 })
--- Thêm toggle Auto Execute Script vào tab Settings
-SettingsTab:AddToggle("AutoExecuteScriptToggle", {
-    Title = "Auto Execute Script",
-    Default = ConfigSystem.CurrentConfig.AutoExecuteScript or false,
-    Callback = function(Value)
-        ConfigSystem.CurrentConfig.AutoExecuteScript = Value
-        ConfigSystem.SaveConfig()
-        
-        if Value then
-            Fluent:Notify({
-                Title = "Auto Execute Script",
-                Content = "Auto Execute Script đã được bật. Script sẽ tự động chạy khi đổi server.",
-                Duration = 3
-            })
-        else
-            Fluent:Notify({
-                Title = "Auto Execute Script",
-                Content = "Auto Execute Script đã được tắt.",
-                Duration = 3
-            })
-        end
-    end
-})
 
--- Kiểm tra và tự động thực thi script nếu Auto Execute Script được bật
-spawn(function()
-    wait(1) -- Đợi game load
-    if ConfigSystem.CurrentConfig.AutoExecuteScript then
-        print("Auto Execute Script đang chạy...")
-        -- Thực hiện hành động tự động chạy script tại đây
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/HTscripthub/AnimeRangerX/refs/heads/main/AnimeRangers.lua"))()
-    end
-end)
 
 -- Tự động đồng bộ trạng thái từ game khi khởi động
 spawn(function()
