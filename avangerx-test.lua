@@ -1206,7 +1206,7 @@ for i = 1, 5 do
     })
 end
 
--- Hàm để thực hiện Auto Join theo thứ tự ưu tiên
+--- Hàm để thực hiện Auto Join theo thứ tự ưu tiên
 local function joinPriorityMode()
     for i = 1, 5 do
         local mode = priorities["Priority" .. i]
@@ -1260,6 +1260,12 @@ PrioritySection:AddToggle("AutoJoinPriorityToggle", {
             })
         end
     end
+})
+
+-- Thêm thông báo hướng dẫn
+PrioritySection:AddParagraph({
+    Title = "Hướng dẫn",
+    Content = "Chọn chế độ ưu tiên từ 1 đến 5. Mỗi ô chỉ được chọn một chế độ."
 })
 
 -- Thêm thông báo hướng dẫn
