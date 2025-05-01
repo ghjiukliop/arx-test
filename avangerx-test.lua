@@ -2296,7 +2296,7 @@ ChallengeSection:AddButton({
     end
 })
 -- Priority tab
--- Biến lưu trạng thái Auto Join Priority
+ -- Biến lưu trạng thái Auto Join Priority
 local autoJoinPriorityEnabled = ConfigSystem.CurrentConfig.AutoJoinPriority or false
 local autoJoinPriorityLoop = nil
 
@@ -2397,6 +2397,27 @@ PrioritySection:AddToggle("AutoJoinPriorityToggle", {
         end
     end
 })
+
+-- Tự động tải trạng thái Auto Join Priority và Priority List khi khởi động
+spawn(function()
+    wait(1) -- Đợi game load
+
+    -- Tải trạng thái Auto Join Priority
+    autoJoinPriorityEnabled = ConfigSystem.CurrentConfig.AutoJoinPriority or false
+    local autoJoinPriorityToggle = PrioritySection:GetComponent("AutoJoinPriorityToggle")
+    if autoJoinPriorityToggle and autoJoinPriorityToggle.Set then
+        autoJoinPriorityToggle:Set(autoJoinPriorityEnabled)
+    end
+
+    -- Tải danh sách Priority List
+    priorityList = ConfigSystem.CurrentConfig.PriorityList or {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"}
+    local priorityListDropdown = PrioritySection:GetComponent("PriorityListDropdown")
+    if priorityListDropdown and priorityListDropdown.Set then
+        priorityListDropdown:Set(priorityList)
+    end
+
+    print("Đã tải trạng thái Auto Join Priority và Priority List từ cấu hình.")
+end)
 -- Thêm section In-Game Controls
 local InGameSection = InGameTab:AddSection("Game Controls")
 
