@@ -1214,33 +1214,18 @@ local function joinPriorityMode()
             print("Đang thực hiện Auto Join cho chế độ: " .. mode)
             
             -- Gọi hàm tương ứng với chế độ
-            if mode == "Story" then
-                if not autoJoinMapEnabled then
-                    autoJoinMapEnabled = true
-                    joinMap()
-                end
-            elseif mode == "Ranger Stage" then
-                if not autoJoinRangerEnabled then
-                    autoJoinRangerEnabled = true
-                    joinRangerStage()
-                end
-            elseif mode == "Boss Event" then
-                if not autoBossEventEnabled then
-                    autoBossEventEnabled = true
-                    joinBossEvent()
-                end
-            elseif mode == "Challenge" then
-                if not autoChallengeEnabled then
-                    autoChallengeEnabled = true
-                    joinChallenge()
-                end
-            elseif mode == "Easter Egg" then
-                if not autoJoinEasterEggEnabled then
-                    autoJoinEasterEggEnabled = true
-                    joinEasterEggEvent()
-                end
+            if mode == "Story" and joinMap then
+                joinMap()
+            elseif mode == "Ranger Stage" and joinRangerStage then
+                joinRangerStage()
+            elseif mode == "Boss Event" and joinBossEvent then
+                joinBossEvent()
+            elseif mode == "Challenge" and joinChallenge then
+                joinChallenge()
+            elseif mode == "Easter Egg" and joinEasterEggEvent then
+                joinEasterEggEvent()
             else
-                warn("Chế độ không hợp lệ: " .. tostring(mode))
+                warn("Chế độ không hợp lệ hoặc hàm không tồn tại: " .. tostring(mode))
             end
             
             -- Dừng kiểm tra sau khi thực hiện chế độ ưu tiên đầu tiên
