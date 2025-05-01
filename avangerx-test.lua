@@ -1162,8 +1162,76 @@ local PrioritySection = PriorityTab:AddSection("Priority Settings")
 -- Ví dụ: Thêm nội dung vào tab Priority
 PrioritySection:AddParagraph({
     Title = "Priority Features",
-    Content = "Các tính năng ưu tiên sẽ được thêm tại đây."
+    Content = "Select priority to for each mode."
 })
+
+local priorityTasks = {
+    "Story",
+    "Ranger Stage",
+    "Challenge",
+    "Egg Event"
+}
+
+-- Biến lưu thứ tự ưu tiên
+local selectedPriority = {}
+
+-- Dropdown để chọn thứ tự ưu tiên
+PrioritySection:AddDropdown("PriorityDropdown", {
+    Title = "Select Priority Order",
+    Values = priorityTasks,
+    Multi = true,
+    Default = {},
+    Callback = function(Values)
+        -- Cập nhật thứ tự ưu tiên
+        selectedPriority = Values
+        print("Thứ tự ưu tiên đã chọn:", table.concat(selectedPriority, ", "))
+    end
+})
+
+-- Hàm thực hiện các function theo thứ tự ưu tiên
+local function executePriorityTasks()
+    for _, task in ipairs(selectedPriority) do
+        if task == "Story" then
+            print("Thực hiện Story")
+            -- Gọi function của Story tại đây
+            joinMap() -- Ví dụ: Gọi hàm joinMap()
+        elseif task == "Ranger Stage" then
+            print("Thực hiện Ranger Stage")
+            -- Gọi function của Ranger Stage tại đây
+            joinRangerStage() -- Ví dụ: Gọi hàm joinRangerStage()
+        elseif task == "Challenge" then
+            print("Thực hiện Challenge")
+            -- Gọi function của Challenge tại đây
+            joinChallenge() -- Ví dụ: Gọi hàm joinChallenge()
+        elseif task == "Egg Event" then
+            print("Thực hiện Egg Event")
+            -- Gọi function của Egg Event tại đây
+            joinEasterEggEvent() -- Ví dụ: Gọi hàm joinEasterEggEvent()
+        end
+    end
+end
+
+-- Nút để bắt đầu thực hiện các function theo thứ tự ưu tiên
+PrioritySection:AddButton({
+    Title = "Execute Priority Tasks",
+    Callback = function()
+        if #selectedPriority == 0 then
+            Fluent:Notify({
+                Title = "Priority",
+                Content = "Vui lòng chọn ít nhất một mục ưu tiên!",
+                Duration = 3
+            })
+        else
+            Fluent:Notify({
+                Title = "Priority",
+                Content = "Đang thực hiện các mục ưu tiên...",
+                Duration = 3
+            })
+            executePriorityTasks()
+        end
+    end
+})
+
 
 -- Thêm section Summon trong tab Shop
 local SummonSection = ShopTab:AddSection("Summon")
