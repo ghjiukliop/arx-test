@@ -2296,7 +2296,9 @@ ChallengeSection:AddButton({
     end
 })
 -- Priority tab
- -- Priority tab
+
+local PrioritySection = PriorityTab:AddSection("Priority Settings")
+
 -- Biến lưu trạng thái Auto Join Priority
 local autoJoinPriorityEnabled = ConfigSystem.CurrentConfig.AutoJoinPriority or false
 local autoJoinPriorityLoop = nil
