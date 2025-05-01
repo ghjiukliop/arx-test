@@ -1226,32 +1226,37 @@ for i = 1, 5 do
 end
 
 -- Hàm để thực hiện Auto Join theo thứ tự ưu tiên
+-- Hàm để thực hiện Auto Join theo thứ tự ưu tiên, chuyển sang chế độ tiếp theo nếu thất bại
 local function joinPriorityMode()
     for i = 1, 5 do
         local mode = priorities["Priority" .. i]
         if mode then
-            print("Đang thực hiện Auto Join cho chế độ: " .. mode)
-            
-            -- Gọi hàm tương ứng với chế độ
+            print("Đang thử Auto Join với chế độ ưu tiên: " .. mode)
+
+            local joined = false
             if mode == "Story" and joinMap then
-                joinMap()
+                joined = joinMap()
             elseif mode == "Ranger Stage" and joinRangerStage then
-                joinRangerStage()
+                joined = joinRangerStage()
             elseif mode == "Boss Event" and joinBossEvent then
-                joinBossEvent()
+                joined = joinBossEvent()
             elseif mode == "Challenge" and joinChallenge then
-                joinChallenge()
+                joined = joinChallenge()
             elseif mode == "Easter Egg" and joinEasterEggEvent then
-                joinEasterEggEvent()
-            else
-                warn("Chế độ không hợp lệ hoặc hàm không tồn tại: " .. tostring(mode))
+                joined = joinEasterEggEvent()
             end
-            
-            -- Dừng kiểm tra sau khi thực hiện chế độ ưu tiên đầu tiên
-            break
+
+            -- Nếu đã join thành công (hàm trả về true), thì thoát khỏi vòng lặp
+            if joined then
+                print("✅ Đã join thành công chế độ: " .. mode)
+                break
+            else
+                print("⚠️ Không thể join chế độ: " .. mode .. ", thử chế độ tiếp theo...")
+            end
         end
     end
 end
+
 
 -- Thêm Toggle Auto Join Priority
 PrioritySection:AddToggle("AutoJoinPriorityToggle", {
