@@ -2328,6 +2328,7 @@ local function autoJoinPriority()
         end
     end
 end
+
 local PrioritySection = PriorityTab:AddSection("Auto Join Priority")
 
 -- Dropdown để sắp xếp thứ tự ưu tiên
@@ -2364,6 +2365,9 @@ PrioritySection:AddToggle("AutoJoinPriorityToggle", {
                 Content = "Auto Join Priority đã được bật.",
                 Duration = 3
             })
+
+            -- Gọi hàm autoJoinPriority ngay lập tức
+            autoJoinPriority()
 
             -- Tạo vòng lặp Auto Join Priority
             if autoJoinPriorityLoop then
