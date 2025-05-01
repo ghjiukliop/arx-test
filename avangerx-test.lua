@@ -1164,7 +1164,62 @@ PrioritySection:AddParagraph({
     Title = "Priority Features",
     Content = "Select priority to for each mode."
 })
+local modes = {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"}
 
+-- Biến lưu trạng thái Priority cho từng chế độ
+local prioritySettings = {
+    Story = "Low",
+    RangerStage = "Low",
+    BossEvent = "Low",
+    Challenge = "Low",
+    EasterEgg = "Low"
+}
+
+-- Hàm kiểm tra nếu tất cả các toggle Auto Join đã bật
+local function areAutoJoinsEnabled()
+    return autoJoinMapEnabled and autoJoinRangerEnabled and autoBossEventEnabled and autoChallengeEnabled and autoJoinEasterEggEnabled
+end
+
+-- Hàm cập nhật trạng thái Priority
+local function updatePriority(mode, value)
+    if not areAutoJoinsEnabled() then
+        Fluent:Notify({
+            Title = "Priority Settings",
+            Content = "Vui lòng bật tất cả các Auto Join để sử dụng chức năng Priority.",
+            Duration = 3
+        })
+        return
+    end
+
+    prioritySettings[mode] = value
+    ConfigSystem.CurrentConfig["Priority_" .. mode] = value
+    ConfigSystem.SaveConfig()
+
+    Fluent:Notify({
+        Title = "Priority Updated",
+        Content = "Đã cập nhật Priority cho " .. mode .. " thành: " .. value,
+        Duration = 2
+    })
+end
+
+-- Tạo 5 dropdown cho từng chế độ
+for _, mode in ipairs(modes) do
+    PrioritySection:AddDropdown(mode .. "PriorityDropdown", {
+        Title = "Priority for " .. mode,
+        Values = {"Low", "Medium", "High"},
+        Multi = false,
+        Default = prioritySettings[mode],
+        Callback = function(value)
+            updatePriority(mode, value)
+        end
+    })
+end
+
+-- Thêm thông báo hướng dẫn
+PrioritySection:AddParagraph({
+    Title = "Lưu ý",
+    Content = "Chức năng Priority chỉ hoạt động khi tất cả các Auto Join đã được bật."
+})
 
 
 
