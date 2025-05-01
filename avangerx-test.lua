@@ -2310,7 +2310,7 @@ local function autoJoinPriority()
         return
     end
 
-    -- Duyệt qua danh sách ưu tiên và tham gia chế độ đầu tiên có thể
+    -- Duyệt qua danh sách ưu tiên và chỉ chạy các mode đã được chọn
     for _, mode in ipairs(priorityList) do
         if mode == "Story" then
             joinMap()
@@ -2331,25 +2331,38 @@ local function autoJoinPriority()
     end
 end
 
--- Tạo giao diện cho Auto Join Priority
-local PrioritySection = PriorityTab:AddSection("Auto Join Priority")
-
--- Dropdown để sắp xếp thứ tự ưu tiên
-PrioritySection:AddDropdown("PriorityListDropdown", {
-    Title = "Set Priority Order",
-    Values = {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"},
-    Multi = true,
-    Default = priorityList,
-    Callback = function(Values)
-        priorityList = Values
-        ConfigSystem.CurrentConfig.PriorityList = Values
+-- Toggle Auto Join Priority
+PrioritySection:AddToggle("AutoJoinPriorityToggle", {
+    Title = "Enable Auto Join Priority",
+    Default = autoJoinPriorityEnabled,
+    Callback = function(Value)
+        autoJoinPriorityEnabled = Value
+        ConfigSystem.CurrentConfig.AutoJoinPriority = Value
         ConfigSystem.SaveConfig()
 
-        Fluent:Notify({
-            Title = "Priority Order",
-            Content = "Đã cập nhật thứ tự ưu tiên.",
-            Duration = 3
-        })
+        if Value then
+            Fluent:Notify({
+                Title = "Auto Join Priority",
+                Content = "Auto Join Priority đã được bật.",
+                Duration = 3
+            })
+
+            -- Gọi hàm autoJoinPriority ngay lập tức
+            autoJoinPriority()
+
+            -- Tạo vòng lặp Auto Join Priority
+            spawn(function()
+                while autoJoinPriorityEnabled and wait(5) do
+                    autoJoinPriority()
+                end
+            end)
+        else
+            Fluent:Notify({
+                Title = "Auto Join Priority",
+                Content = "Auto Join Priority đã được tắt.",
+                Duration = 3
+            })
+        end
     end
 })
 
