@@ -2296,7 +2296,6 @@ ChallengeSection:AddButton({
     end
 })
 -- Priority tab
-
 local PrioritySection = PriorityTab:AddSection("Priority Settings")
 
 -- Biến lưu trạng thái Auto Join Priority
@@ -2333,40 +2332,6 @@ local function autoJoinPriority()
     end
 end
 
--- Toggle Auto Join Priority
-PrioritySection:AddToggle("AutoJoinPriorityToggle", {
-    Title = "Enable Auto Join Priority",
-    Default = autoJoinPriorityEnabled,
-    Callback = function(Value)
-        autoJoinPriorityEnabled = Value
-        ConfigSystem.CurrentConfig.AutoJoinPriority = Value
-        ConfigSystem.SaveConfig()
-
-        if Value then
-            Fluent:Notify({
-                Title = "Auto Join Priority",
-                Content = "Auto Join Priority đã được bật.",
-                Duration = 3
-            })
-
-            -- Gọi hàm autoJoinPriority ngay lập tức
-            autoJoinPriority()
-
-            -- Tạo vòng lặp Auto Join Priority
-            spawn(function()
-                while autoJoinPriorityEnabled and wait(5) do
-                    autoJoinPriority()
-                end
-            end)
-        else
-            Fluent:Notify({
-                Title = "Auto Join Priority",
-                Content = "Auto Join Priority đã được tắt.",
-                Duration = 3
-            })
-        end
-    end
-})
 
 -- Toggle Auto Join Priority
 PrioritySection:AddToggle("AutoJoinPriorityToggle", {
