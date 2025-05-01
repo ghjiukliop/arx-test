@@ -1207,7 +1207,9 @@ PrioritySection:AddParagraph({
     Title = "Priority Features",
     Content = "Select priority to for each mode."
 })
-
+-- Biến lưu trạng thái Auto Join Priority
+local autoJoinPriorityEnabled = ConfigSystem.CurrentConfig.AutoJoinPriority or false
+local autoJoinPriorityLoop = nil
 -- Thêm section Priority vào tab Priority
 local PrioritySection = PriorityTab:AddSection("Priority Settings")
 
@@ -1248,7 +1250,81 @@ for i = 1, 5 do
         end
     })
 end
+local function autoJoinPriority()
+    if not autoJoinPriorityEnabled or isPlayerInMap() then
+        return
+    end
 
+    -- Lấy danh sách ưu tiên từ cấu hình
+    local priorityList = {
+        ConfigSystem.CurrentConfig.Priority1,
+        ConfigSystem.CurrentConfig.Priority2,
+        ConfigSystem.CurrentConfig.Priority3,
+        ConfigSystem.CurrentConfig.Priority4,
+        ConfigSystem.CurrentConfig.Priority5
+    }
+
+    -- Duyệt qua danh sách ưu tiên và tham gia chế độ đầu tiên có thể
+    for _, mode in ipairs(priorityList) do
+        if mode == "Story" and autoJoinMapEnabled then
+            joinMap()
+            break
+        elseif mode == "Ranger Stage" and autoJoinRangerEnabled then
+            joinRangerStage()
+            break
+        elseif mode == "Boss Event" and autoBossEventEnabled then
+            joinBossEvent()
+            break
+        elseif mode == "Challenge" and autoChallengeEnabled then
+            joinChallenge()
+            break
+        elseif mode == "Easter Egg" and autoJoinEasterEggEnabled then
+            joinEasterEggEvent()
+            break
+        end
+    end
+end
+PrioritySection:AddToggle("AutoJoinPriorityToggle", {
+    Title = "Auto Join Priority",
+    Default = autoJoinPriorityEnabled,
+    Callback = function(Value)
+        autoJoinPriorityEnabled = Value
+        ConfigSystem.CurrentConfig.AutoJoinPriority = Value
+        ConfigSystem.SaveConfig()
+
+        if Value then
+            Fluent:Notify({
+                Title = "Auto Join Priority",
+                Content = "Auto Join Priority đã được bật. Sẽ tự động tham gia chế độ theo thứ tự ưu tiên.",
+                Duration = 3
+            })
+
+            -- Tạo vòng lặp Auto Join Priority
+            if autoJoinPriorityLoop then
+                autoJoinPriorityLoop:Disconnect()
+                autoJoinPriorityLoop = nil
+            end
+
+            spawn(function()
+                while autoJoinPriorityEnabled and wait(5) do
+                    autoJoinPriority()
+                end
+            end)
+        else
+            Fluent:Notify({
+                Title = "Auto Join Priority",
+                Content = "Auto Join Priority đã được tắt.",
+                Duration = 3
+            })
+
+            -- Hủy vòng lặp nếu có
+            if autoJoinPriorityLoop then
+                autoJoinPriorityLoop:Disconnect()
+                autoJoinPriorityLoop = nil
+            end
+        end
+    end
+})
 -- Thêm thông báo hướng dẫn
 PrioritySection:AddParagraph({
     Title = "Hướng dẫn",
