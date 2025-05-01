@@ -1165,6 +1165,9 @@ PrioritySection:AddParagraph({
     Content = "Select priority to for each mode."
 })
 
+-- Thêm section Priority vào tab Priority
+local PrioritySection = PriorityTab:AddSection("Priority Settings")
+
 -- Danh sách các mục có thể chọn
 local priorityTasks = {
     "Story",
@@ -1173,74 +1176,26 @@ local priorityTasks = {
     "Egg Event"
 }
 
--- Biến lưu thứ tự ưu tiên
-local selectedPriority = {
-    ["Priority 1"] = nil,
-    ["Priority 2"] = nil,
-    ["Priority 3"] = nil,
-    ["Priority 4"] = nil,
-    ["Priority 5"] = nil
-}
-
--- Tạo dropdown cho từng Priority
-for priorityName, _ in pairs(selectedPriority) do
-    PrioritySection:AddDropdown(priorityName, {
-        Title = priorityName,
-        Values = priorityTasks,
-        Multi = false, -- Chỉ cho phép chọn một giá trị
-        Default = nil,
-        Callback = function(Value)
-            -- Cập nhật giá trị cho Priority
-            selectedPriority[priorityName] = Value
-            print(priorityName .. " đã chọn: " .. Value)
-        end
-    })
-end
-
--- Hàm thực hiện các function theo thứ tự ưu tiên
-local function executePriorityTasks()
-    for priority, task in pairs(selectedPriority) do
-        if task == "Story" then
+-- Dropdown để chọn Priority
+PrioritySection:AddDropdown("PriorityDropdown", {
+    Title = "Select Priority",
+    Values = priorityTasks,
+    Multi = false, -- Chỉ cho phép chọn một giá trị
+    Default = nil,
+    Callback = function(Value)
+        -- Thực hiện hành động ngay lập tức khi người chơi chọn
+        if Value == "Story" then
             print("Thực hiện Story")
             joinMap() -- Gọi hàm joinMap()
-        elseif task == "Ranger Stage" then
+        elseif Value == "Ranger Stage" then
             print("Thực hiện Ranger Stage")
             joinRangerStage() -- Gọi hàm joinRangerStage()
-        elseif task == "Challenge" then
+        elseif Value == "Challenge" then
             print("Thực hiện Challenge")
             joinChallenge() -- Gọi hàm joinChallenge()
-        elseif task == "Egg Event" then
+        elseif Value == "Egg Event" then
             print("Thực hiện Egg Event")
             joinEasterEggEvent() -- Gọi hàm joinEasterEggEvent()
-        end
-    end
-end
-
--- Nút để bắt đầu thực hiện các function theo thứ tự ưu tiên
-PrioritySection:AddButton({
-    Title = "Execute Priority Tasks",
-    Callback = function()
-        local hasSelection = false
-        for _, task in pairs(selectedPriority) do
-            if task then
-                hasSelection = true
-                break
-            end
-        end
-
-        if not hasSelection then
-            Fluent:Notify({
-                Title = "Priority",
-                Content = "Vui lòng chọn ít nhất một mục ưu tiên!",
-                Duration = 3
-            })
-        else
-            Fluent:Notify({
-                Title = "Priority",
-                Content = "Đang thực hiện các mục ưu tiên...",
-                Duration = 3
-            })
-            executePriorityTasks()
         end
     end
 })
