@@ -1180,8 +1180,27 @@ local priorities = {
     Priority5 = ConfigSystem.CurrentConfig.Priority5 or "Easter Egg"
 }
 
+-- Hàm kiểm tra trùng lặp chế độ
+local function isDuplicatePriority(value, priorityKey)
+    for key, mode in pairs(priorities) do
+        if key ~= priorityKey and mode == value then
+            return true
+        end
+    end
+    return false
+end
+
 -- Hàm cập nhật trạng thái khi người dùng chọn
 local function updatePriority(priorityKey, value)
+    if isDuplicatePriority(value, priorityKey) then
+        Fluent:Notify({
+            Title = "Priority Error",
+            Content = "Chế độ '" .. value .. "' đã được chọn ở ưu tiên khác!",
+            Duration = 3
+        })
+        return
+    end
+
     priorities[priorityKey] = value
     ConfigSystem.CurrentConfig[priorityKey] = value
     ConfigSystem.SaveConfig()
@@ -1217,7 +1236,6 @@ local function joinPriorityMode()
             if mode == "Story" and joinMap then
                 joinMap()
             elseif mode == "Ranger Stage" and joinRangerStage then
-                print("Gọi hàm joinRangerStage từ Priority")
                 joinRangerStage()
             elseif mode == "Boss Event" and joinBossEvent then
                 joinBossEvent()
@@ -1250,7 +1268,6 @@ PrioritySection:AddToggle("AutoJoinPriorityToggle", {
             -- Tạo vòng lặp Auto Join Priority
             spawn(function()
                 while Value and wait(5) do
-                    print("Gọi joinPriorityMode từ Auto Join Priority")
                     joinPriorityMode()
                 end
             end)
@@ -1267,16 +1284,9 @@ PrioritySection:AddToggle("AutoJoinPriorityToggle", {
 -- Thêm thông báo hướng dẫn
 PrioritySection:AddParagraph({
     Title = "Hướng dẫn",
-    Content = "Chọn chế độ ưu tiên từ 1 đến 5. Mỗi ô chỉ được chọn một chế độ."
+    Content = "Chọn chế độ ưu tiên từ 1 đến 5. Mỗi ô chỉ được chọn một chế độ. Không được trùng lặp!"
 })
 
-
--- Thêm thông báo hướng dẫn
-PrioritySection:AddParagraph({
-    Title = "Hướng dẫn",
-    Content = "Chọn chế độ ưu tiên từ 1 đến 5. Mỗi ô chỉ được chọn một chế độ."
-    
-})
 
 
 -- Thêm section Summon trong tab Shop
