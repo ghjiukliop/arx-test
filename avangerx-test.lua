@@ -2418,6 +2418,7 @@ spawn(function()
 
     print("Đã tải trạng thái Auto Join Priority và Priority List từ cấu hình.")
 end)
+--
 -- Thêm section In-Game Controls
 local InGameSection = InGameTab:AddSection("Game Controls")
 
