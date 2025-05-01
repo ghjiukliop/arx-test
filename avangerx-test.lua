@@ -643,6 +643,11 @@ local PlayTab = Window:AddTab({
     Icon = "rbxassetid://7743871480"
 })
 
+-- Tạo tab Priority 
+local PriorityTab = Window:AddTab({
+    Title = "Priority",
+    Icon = "rbxassetid://7743871480" -- Thay bằng icon phù hợp
+})
 -- Tạo tab Event
 local EventTab = Window:AddTab({
     Title = "Event",
@@ -1148,6 +1153,16 @@ StorySection:AddButton({
         
         print("Trạng thái: " .. statusText)
     end
+})
+
+
+-- Thêm section Priority vào tab Priority
+local PrioritySection = PriorityTab:AddSection("Priority Settings")
+
+-- Ví dụ: Thêm nội dung vào tab Priority
+PrioritySection:AddParagraph({
+    Title = "Priority Features",
+    Content = "Các tính năng ưu tiên sẽ được thêm tại đây."
 })
 
 -- Thêm section Summon trong tab Shop
