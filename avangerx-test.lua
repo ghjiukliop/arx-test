@@ -4112,3 +4112,8 @@ end
 if OpenUI then
     OpenUI.Enabled = true -- Hiển thị logo ngay lập tức
 end
+
+if keyAuthenticated then
+    ScreenGui:Destroy() -- Xóa UI Key System
+    return true
+end
