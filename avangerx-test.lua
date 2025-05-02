@@ -1614,17 +1614,18 @@ local function joinRangerStage()
 
     -- Lấy Act hiện tại từ danh sách đã sắp xếp
     local currentAct = orderedActs[currentActIndex]
+    local fullPath = selectedRangerMap .. "_" .. currentAct -- Tạo path đầy đủ, ví dụ: "Namek_RangerStage1"
 
-    -- Kiểm tra xem Act có tồn tại trong folder RangerStage không
+    -- Kiểm tra xem Act đã thắng hay chưa
     local playerData = game:GetService("ReplicatedStorage"):FindFirstChild("Player_Data")
     if playerData then
-        local playerFolder = playerData:FindFirstChild("poilkiujhg") -- Thay bằng tên người chơi thực tế
+        local playerFolder = playerData:FindFirstChild(game.Players.LocalPlayer.Name) -- Lấy folder người chơi
         if playerFolder then
             local rangerStageFolder = playerFolder:FindFirstChild("RangerStage")
             if rangerStageFolder then
-                local actExists = rangerStageFolder:FindFirstChild(currentAct)
-                if not actExists then
-                    warn("Không thể join Ranger Stage: Act '" .. currentAct .. "' không tồn tại trong dữ liệu người chơi")
+                local completedStage = rangerStageFolder:FindFirstChild(fullPath)
+                if completedStage then
+                    warn("Không thể join Ranger Stage: '" .. fullPath .. "' đã được hoàn thành trước đó")
                     return false
                 end
             else
@@ -1632,7 +1633,7 @@ local function joinRangerStage()
                 return false
             end
         else
-            warn("Không tìm thấy dữ liệu người chơi: poilkiujhg")
+            warn("Không tìm thấy dữ liệu người chơi: " .. game.Players.LocalPlayer.Name)
             return false
         end
     else
@@ -1640,6 +1641,7 @@ local function joinRangerStage()
         return false
     end
 
+    -- Thực hiện join Ranger Stage
     local success, err = pcall(function()
         -- Lấy Event
         local Event = safeGetPath(game:GetService("ReplicatedStorage"), {"Remote", "Server", "PlayRoom", "Event"}, 2)
@@ -1684,7 +1686,7 @@ local function joinRangerStage()
         local args2 = {
             [1] = "Change-Chapter",
             [2] = {
-                ["Chapter"] = selectedRangerMap .. "_" .. currentAct
+                ["Chapter"] = fullPath
             }
         }
         Event:FireServer(unpack(args2))
@@ -1697,7 +1699,7 @@ local function joinRangerStage()
         -- 6. Start
         Event:FireServer("Start")
 
-        print("Đã join Ranger Stage: " .. selectedRangerMap .. "_" .. currentAct)
+        print("Đã join Ranger Stage: " .. fullPath)
 
         -- Cập nhật index cho lần tiếp theo
         currentActIndex = (currentActIndex % #orderedActs) + 1
@@ -1710,7 +1712,6 @@ local function joinRangerStage()
 
     return true
 end
-
 -- Hàm để lặp qua các selected Acts
 local function cycleRangerStages()
     if not autoJoinRangerEnabled or isPlayerInMap() then
