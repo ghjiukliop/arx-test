@@ -1595,6 +1595,7 @@ local function updateOrderedActs()
 end
 
 -- Hàm để tự động tham gia Ranger Stage
+-- Hàm để tự động tham gia Ranger Stage
 local function joinRangerStage()
     -- Kiểm tra xem người chơi đã ở trong map chưa
     if isPlayerInMap() then
@@ -1614,20 +1615,31 @@ local function joinRangerStage()
     -- Lấy Act hiện tại từ danh sách đã sắp xếp
     local currentAct = orderedActs[currentActIndex]
 
-    -- Kiểm tra xem Act đã thắng chưa
-    local player = game:GetService("Players").LocalPlayer
-    local rangerStageFolder = game:GetService("ReplicatedStorage"):FindFirstChild("Player_Data")
-        and game:GetService("ReplicatedStorage").Player_Data:FindFirstChild(player.Name)
-        and game:GetService("ReplicatedStorage").Player_Data[player.Name]:FindFirstChild("RangerStage")
-
-    if rangerStageFolder and rangerStageFolder:FindFirstChild(currentAct) then
-        print("Act " .. currentAct .. " đã thắng, chuyển sang Act tiếp theo.")
-        -- Cập nhật index cho lần tiếp theo
-        currentActIndex = (currentActIndex % #orderedActs) + 1
+    -- Kiểm tra xem Act có tồn tại trong folder RangerStage không
+    local playerData = game:GetService("ReplicatedStorage"):FindFirstChild("Player_Data")
+    if playerData then
+        local playerFolder = playerData:FindFirstChild("poilkiujhg") -- Thay bằng tên người chơi thực tế
+        if playerFolder then
+            local rangerStageFolder = playerFolder:FindFirstChild("RangerStage")
+            if rangerStageFolder then
+                local actExists = rangerStageFolder:FindFirstChild(currentAct)
+                if not actExists then
+                    warn("Không thể join Ranger Stage: Act '" .. currentAct .. "' không tồn tại trong dữ liệu người chơi")
+                    return false
+                end
+            else
+                warn("Không tìm thấy folder RangerStage trong dữ liệu người chơi")
+                return false
+            end
+        else
+            warn("Không tìm thấy dữ liệu người chơi: poilkiujhg")
+            return false
+        end
+    else
+        warn("Không tìm thấy Player_Data trong ReplicatedStorage")
         return false
     end
 
-    -- Thực hiện join Act hiện tại
     local success, err = pcall(function()
         -- Lấy Event
         local Event = safeGetPath(game:GetService("ReplicatedStorage"), {"Remote", "Server", "PlayRoom", "Event"}, 2)
