@@ -2296,6 +2296,7 @@ ChallengeSection:AddButton({
     end
 })
 -- Priority tab
+-- Priority tab
 local PrioritySection = PriorityTab:AddSection("Priority Settings")
 
 -- Biến lưu trạng thái Auto Join Priority
@@ -2313,11 +2314,11 @@ for i = 1, 5 do
         Title = "Priority Slot " .. i,
         Values = availableModes,
         Multi = false,
-        Default = "None", -- Mặc định là "None"
+        Default = ConfigSystem.CurrentConfig["PrioritySlot" .. i] or "None", -- Lấy giá trị từ JSON hoặc mặc định là "None"
         Callback = function(Value)
             priorityOrder[i] = Value -- Cập nhật thứ tự ưu tiên
             ConfigSystem.CurrentConfig["PrioritySlot" .. i] = Value -- Lưu vào cấu hình
-            ConfigSystem.SaveConfig()
+            ConfigSystem.SaveConfig() -- Lưu cấu hình vào file JSON
             
             print("Đã chọn Priority Slot " .. i .. ": " .. Value)
         end
@@ -2401,14 +2402,13 @@ PrioritySection:AddToggle("AutoJoinPriorityToggle", {
 
             -- Hủy vòng lặp nếu có
             if autoJoinPriorityLoop then
-                autoJoinPriorityLoop:Disconnect()   -- Tải danh sách Priority List
+                autoJoinPriorityLoop:Disconnect()
                 autoJoinPriorityLoop = nil
             end
         end
     end
 })
 
--- Tự động tải trạng thái Auto Join Priority và Priority List khi khởi động
 -- Tự động tải trạng thái Auto Join Priority và Priority List khi khởi động
 spawn(function()
     wait(1) -- Đợi game load
@@ -2417,7 +2417,13 @@ spawn(function()
     autoJoinPriorityEnabled = ConfigSystem.CurrentConfig.AutoJoinPriority or false
 
     -- Tải danh sách Priority List
-    priorityList = ConfigSystem.CurrentConfig.PriorityList or {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"}
+    priorityOrder = {
+        ConfigSystem.CurrentConfig["PrioritySlot1"] or "None",
+        ConfigSystem.CurrentConfig["PrioritySlot2"] or "None",
+        ConfigSystem.CurrentConfig["PrioritySlot3"] or "None",
+        ConfigSystem.CurrentConfig["PrioritySlot4"] or "None",
+        ConfigSystem.CurrentConfig["PrioritySlot5"] or "None"
+    }
 
     print("Đã tải trạng thái Auto Join Priority và Priority List từ cấu hình.")
 end)
