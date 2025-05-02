@@ -1595,142 +1595,94 @@ local function updateOrderedActs()
 end
 
 -- Hàm để tự động tham gia Ranger Stage
--- Hàm để tự động tham gia Ranger Stage
 local function joinRangerStage()
     -- Kiểm tra xem người chơi đã ở trong map chưa
     if isPlayerInMap() then
         print("Đã phát hiện người chơi đang ở trong map, không thực hiện join Ranger Stage")
         return false
     end
-
+    
     -- Cập nhật danh sách Acts đã sắp xếp
     updateOrderedActs()
-
+    
     -- Kiểm tra xem có Act nào được chọn không
     if #orderedActs == 0 then
         warn("Không có Act nào được chọn để join Ranger Stage")
         return false
     end
-
-    local attempts = 0 -- Đếm số lần thử
-    local maxAttempts = #orderedActs -- Giới hạn số lần thử bằng số lượng Acts đã chọn
-    local successFlag = false -- Biến cờ để theo dõi trạng thái thành công
-
-    while attempts < maxAttempts do
-        local currentAct = orderedActs[currentActIndex]
-        local fullPath = selectedRangerMap .. "_" .. currentAct -- Tạo path đầy đủ, ví dụ: "Namek_RangerStage1"
-
-        -- Kiểm tra xem Act đã thắng hay chưa
-        local playerData = game:GetService("ReplicatedStorage"):FindFirstChild("Player_Data")
-        if playerData then
-            local playerFolder = playerData:FindFirstChild(game.Players.LocalPlayer.Name) -- Lấy folder người chơi
-            if playerFolder then
-                local rangerStageFolder = playerFolder:FindFirstChild("RangerStage")
-                if rangerStageFolder then
-                    local completedStage = rangerStageFolder:FindFirstChild(fullPath)
-                    if completedStage then
-                        warn("Không thể join Ranger Stage: '" .. fullPath .. "' đã được hoàn thành trước đó")
-                        
-                        -- Chuyển sang Act tiếp theo
-                        currentActIndex = (currentActIndex % #orderedActs) + 1
-                        attempts = attempts + 1
-                        -- Bỏ qua phần còn lại của vòng lặp
-                        goto continueLoop
-                    end
-                else
-                    warn("Không tìm thấy folder RangerStage trong dữ liệu người chơi")
-                    return false
-                end
-            else
-                warn("Không tìm thấy dữ liệu người chơi: " .. game.Players.LocalPlayer.Name)
-                return false
-            end
-        else
-            warn("Không tìm thấy Player_Data trong ReplicatedStorage")
-            return false
+    
+    -- Lấy Act hiện tại từ danh sách đã sắp xếp
+    local currentAct = orderedActs[currentActIndex]
+    
+    local success, err = pcall(function()
+        -- Lấy Event
+        local Event = safeGetPath(game:GetService("ReplicatedStorage"), {"Remote", "Server", "PlayRoom", "Event"}, 2)
+        
+        if not Event then
+            warn("Không tìm thấy Event để join Ranger Stage")
+            return
         end
-
-        -- Thực hiện join Ranger Stage
-        local success, err = pcall(function()
-            -- Lấy Event
-            local Event = safeGetPath(game:GetService("ReplicatedStorage"), {"Remote", "Server", "PlayRoom", "Event"}, 2)
-
-            if not Event then
-                warn("Không tìm thấy Event để join Ranger Stage")
-                return
-            end
-
-            -- 1. Create
-            Event:FireServer("Create")
-            wait(0.5)
-
-            -- 2. Change Mode to Ranger Stage
-            local modeArgs = {
-                [1] = "Change-Mode",
-                [2] = {
-                    ["Mode"] = "Ranger Stage"
-                }
+        
+        -- 1. Create
+        Event:FireServer("Create")
+        wait(0.5)
+        
+        -- 2. Change Mode to Ranger Stage
+        local modeArgs = {
+            [1] = "Change-Mode",
+            [2] = {
+                ["Mode"] = "Ranger Stage"
             }
-            Event:FireServer(unpack(modeArgs))
+        }
+        Event:FireServer(unpack(modeArgs))
+        wait(0.5)
+        
+        -- 3. Friend Only (nếu được bật)
+        if rangerFriendOnly then
+            Event:FireServer("Change-FriendOnly")
             wait(0.5)
-
-            -- 3. Friend Only (nếu được bật)
-            if rangerFriendOnly then
-                Event:FireServer("Change-FriendOnly")
-                wait(0.5)
-            end
-
-            -- 4. Chọn Map và Act
-            -- 4.1 Đổi Map
-            local args1 = {
-                [1] = "Change-World",
-                [2] = {
-                    ["World"] = selectedRangerMap
-                }
-            }
-            Event:FireServer(unpack(args1))
-            wait(0.5)
-
-            -- 4.2 Đổi Act - dùng Act hiện tại theo thứ tự luân phiên
-            local args2 = {
-                [1] = "Change-Chapter",
-                [2] = {
-                    ["Chapter"] = fullPath
-                }
-            }
-            Event:FireServer(unpack(args2))
-            wait(0.5)
-
-            -- 5. Submit
-            Event:FireServer("Submit")
-            wait(1)
-
-            -- 6. Start
-            Event:FireServer("Start")
-
-            print("Đã join Ranger Stage: " .. fullPath)
-
-            -- Cập nhật index cho lần tiếp theo
-            currentActIndex = (currentActIndex % #orderedActs) + 1
-        end)
-
-        if success then
-            successFlag = true -- Đánh dấu thành công
-            break -- Thoát vòng lặp
-        else
-            warn("Lỗi khi join Ranger Stage: " .. tostring(err))
-            return false
         end
-
-        ::continueLoop::
-    end
-
-    if successFlag then
-        return true -- Thành công
-    else
-        warn("Không thể join bất kỳ Ranger Stage nào trong danh sách đã chọn")
+        
+        -- 4. Chọn Map và Act
+        -- 4.1 Đổi Map
+        local args1 = {
+            [1] = "Change-World",
+            [2] = {
+                ["World"] = selectedRangerMap
+            }
+        }
+        Event:FireServer(unpack(args1))
+        wait(0.5)
+        
+        -- 4.2 Đổi Act - dùng Act hiện tại theo thứ tự luân phiên
+        local args2 = {
+            [1] = "Change-Chapter",
+            [2] = {
+                ["Chapter"] = selectedRangerMap .. "_" .. currentAct
+            }
+        }
+        Event:FireServer(unpack(args2))
+        wait(0.5)
+        
+        -- 5. Submit
+        Event:FireServer("Submit")
+        wait(1)
+        
+        -- 6. Start
+        Event:FireServer("Start")
+        
+        print("Đã join Ranger Stage: " .. selectedRangerMap .. "_" .. currentAct)
+        
+        -- Cập nhật index cho lần tiếp theo
+        currentActIndex = (currentActIndex % #orderedActs) + 1
+    end)
+    
+    if not success then
+        warn("Lỗi khi join Ranger Stage: " .. tostring(err))
         return false
     end
+    
+    return true
 end
 
 -- Hàm để lặp qua các selected Acts
