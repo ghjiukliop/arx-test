@@ -1601,32 +1601,46 @@ local function joinRangerStage()
         print("Đã phát hiện người chơi đang ở trong map, không thực hiện join Ranger Stage")
         return false
     end
-    
+
     -- Cập nhật danh sách Acts đã sắp xếp
     updateOrderedActs()
-    
+
     -- Kiểm tra xem có Act nào được chọn không
     if #orderedActs == 0 then
         warn("Không có Act nào được chọn để join Ranger Stage")
         return false
     end
-    
+
     -- Lấy Act hiện tại từ danh sách đã sắp xếp
     local currentAct = orderedActs[currentActIndex]
-    
+
+    -- Kiểm tra xem Act đã thắng chưa
+    local player = game:GetService("Players").LocalPlayer
+    local rangerStageFolder = game:GetService("ReplicatedStorage"):FindFirstChild("Player_Data")
+        and game:GetService("ReplicatedStorage").Player_Data:FindFirstChild(player.Name)
+        and game:GetService("ReplicatedStorage").Player_Data[player.Name]:FindFirstChild("RangerStage")
+
+    if rangerStageFolder and rangerStageFolder:FindFirstChild(currentAct) then
+        print("Act " .. currentAct .. " đã thắng, chuyển sang Act tiếp theo.")
+        -- Cập nhật index cho lần tiếp theo
+        currentActIndex = (currentActIndex % #orderedActs) + 1
+        return false
+    end
+
+    -- Thực hiện join Act hiện tại
     local success, err = pcall(function()
         -- Lấy Event
         local Event = safeGetPath(game:GetService("ReplicatedStorage"), {"Remote", "Server", "PlayRoom", "Event"}, 2)
-        
+
         if not Event then
             warn("Không tìm thấy Event để join Ranger Stage")
             return
         end
-        
+
         -- 1. Create
         Event:FireServer("Create")
         wait(0.5)
-        
+
         -- 2. Change Mode to Ranger Stage
         local modeArgs = {
             [1] = "Change-Mode",
@@ -1636,13 +1650,13 @@ local function joinRangerStage()
         }
         Event:FireServer(unpack(modeArgs))
         wait(0.5)
-        
+
         -- 3. Friend Only (nếu được bật)
         if rangerFriendOnly then
             Event:FireServer("Change-FriendOnly")
             wait(0.5)
         end
-        
+
         -- 4. Chọn Map và Act
         -- 4.1 Đổi Map
         local args1 = {
@@ -1653,7 +1667,7 @@ local function joinRangerStage()
         }
         Event:FireServer(unpack(args1))
         wait(0.5)
-        
+
         -- 4.2 Đổi Act - dùng Act hiện tại theo thứ tự luân phiên
         local args2 = {
             [1] = "Change-Chapter",
@@ -1663,25 +1677,25 @@ local function joinRangerStage()
         }
         Event:FireServer(unpack(args2))
         wait(0.5)
-        
+
         -- 5. Submit
         Event:FireServer("Submit")
         wait(1)
-        
+
         -- 6. Start
         Event:FireServer("Start")
-        
+
         print("Đã join Ranger Stage: " .. selectedRangerMap .. "_" .. currentAct)
-        
+
         -- Cập nhật index cho lần tiếp theo
         currentActIndex = (currentActIndex % #orderedActs) + 1
     end)
-    
+
     if not success then
         warn("Lỗi khi join Ranger Stage: " .. tostring(err))
         return false
     end
-    
+
     return true
 end
 
