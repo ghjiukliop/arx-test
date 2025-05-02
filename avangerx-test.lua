@@ -2301,37 +2301,66 @@ local PrioritySection = PriorityTab:AddSection("Priority Settings")
 -- Biến lưu trạng thái Auto Join Priority
 local autoJoinPriorityEnabled = ConfigSystem.CurrentConfig.AutoJoinPriority or false
 local autoJoinPriorityLoop = nil
+-- Danh sách các mode
+local availableModes = {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg", "None"}
 
--- Biến lưu danh sách ưu tiên
-local priorityList = ConfigSystem.CurrentConfig.PriorityList or {"Story", "Ranger Stage", "Boss Event", "Challenge", "Easter Egg"}
+-- Biến lưu thứ tự ưu tiên
+local priorityOrder = {"None", "None", "None", "None", "None"}
 
--- Hàm Auto Join Priority
+-- Tạo 5 dropdown cho thứ tự ưu tiên
+for i = 1, 5 do
+    PrioritySection:AddDropdown("PriorityDropdown" .. i, {
+        Title = "Priority Slot " .. i,
+        Values = availableModes,
+        Multi = false,
+        Default = "None", -- Mặc định là "None"
+        Callback = function(Value)
+            priorityOrder[i] = Value -- Cập nhật thứ tự ưu tiên
+            ConfigSystem.CurrentConfig["PrioritySlot" .. i] = Value -- Lưu vào cấu hình
+            ConfigSystem.SaveConfig()
+            
+            print("Đã chọn Priority Slot " .. i .. ": " .. Value)
+        end
+    })
+end
+
+-- Cập nhật hàm Auto Join Priority để bỏ qua "None"
 local function autoJoinPriority()
     if not autoJoinPriorityEnabled or isPlayerInMap() then
         return
     end
 
-    -- Duyệt qua danh sách ưu tiên và chỉ chạy các mode đã được chọn
-    for _, mode in ipairs(priorityList) do
-        if mode == "Story" then
-            joinMap()
-            break
-        elseif mode == "Ranger Stage" then
-            joinRangerStage()
-            break
-        elseif mode == "Boss Event" then
-            joinBossEvent()
-            break
-        elseif mode == "Challenge" then
-            joinChallenge()
-            break
-        elseif mode == "Easter Egg" then
-            joinEasterEggEvent()
-            break
+    -- Duyệt qua thứ tự ưu tiên và bỏ qua "None"
+    for _, mode in ipairs(priorityOrder) do
+        if mode ~= "None" then
+            if mode == "Story" then
+                joinMap()
+                break
+            elseif mode == "Ranger Stage" then
+                joinRangerStage()
+                break
+            elseif mode == "Boss Event" then
+                joinBossEvent()
+                break
+            elseif mode == "Challenge" then
+                joinChallenge()
+                break
+            elseif mode == "Easter Egg" then
+                joinEasterEggEvent()
+                break
+            end
         end
     end
 end
 
+-- Tự động tải thứ tự ưu tiên từ cấu hình khi khởi động
+spawn(function()
+    wait(1) -- Đợi game load
+    for i = 1, 5 do
+        priorityOrder[i] = ConfigSystem.CurrentConfig["PrioritySlot" .. i] or "None"
+    end
+    print("Đã tải thứ tự ưu tiên từ cấu hình:", table.concat(priorityOrder, ", "))
+end)
 
 -- Toggle Auto Join Priority
 PrioritySection:AddToggle("AutoJoinPriorityToggle", {
