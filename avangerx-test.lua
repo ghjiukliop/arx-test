@@ -2472,24 +2472,30 @@ local function autoJoinPriority()
     -- Duyệt qua thứ tự ưu tiên và bỏ qua "None"
     for _, mode in ipairs(priorityOrder) do
         if mode ~= "None" then
+            local success = false
             if mode == "Story" then
-                joinMap()
-                break
+                success = joinMap()
             elseif mode == "Ranger Stage" then
-                joinRangerStage()
-                break
+                success = joinRangerStage()
             elseif mode == "Boss Event" then
-                joinBossEvent()
-                break
+                success = joinBossEvent()
             elseif mode == "Challenge" then
-                joinChallenge()
-                break
+                success = joinChallenge()
             elseif mode == "Easter Egg" then
-                joinEasterEggEvent()
-                break
+                success = joinEasterEggEvent()
+            end
+
+            -- Nếu tham gia thành công, dừng vòng lặp
+            if success then
+                print("Đã tham gia mode: " .. mode)
+                return
+            else
+                print("Không thể tham gia mode: " .. mode .. ", chuyển sang mode tiếp theo.")
             end
         end
     end
+
+    print("Không có mode nào khả dụng để tham gia.")
 end
 
 -- Tự động tải thứ tự ưu tiên từ cấu hình khi khởi động
