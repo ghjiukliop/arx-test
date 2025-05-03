@@ -1527,75 +1527,75 @@ local function joinRangerStage()
         return false
     end
 
-    -- Lặp qua tất cả các RangerStage để tìm stage chưa thắng và thuộc map đã chọn
-    local foundUncompletedStage = false
-    for _, stage in ipairs(rangerStageFolder:GetChildren()) do
-        if stage:IsA("BoolValue") and stage.Value == false then
-            -- Tách tên map và stage từ tên của BoolValue
-            local map, act = string.match(stage.Name, "^(.-)_(.+)$")
-            if map and act and selectedRangerMaps[map] then
-                print("Tìm thấy Ranger Stage chưa thắng: " .. stage.Name .. " thuộc map: " .. map)
+    -- Lặp qua tất cả các map đã chọn
+    for map, isSelected in pairs(selectedRangerMaps) do
+        if isSelected then
+            -- Kiểm tra xem các stage của map này có tồn tại không
+            local stages = {"RangerStage1", "RangerStage2", "RangerStage3"}
+            for _, stage in ipairs(stages) do
+                local stageKey = map .. "_" .. stage
+                local stageStatus = rangerStageFolder:FindFirstChild(stageKey)
 
-                -- Thực hiện join stage chưa thắng
-                local success, err = pcall(function()
-                    local Event = safeGetPath(game:GetService("ReplicatedStorage"), {"Remote", "Server", "PlayRoom", "Event"}, 2)
-                    if not Event then
-                        warn("Không tìm thấy Event để join Ranger Stage")
-                        return
-                    end
+                if not stageStatus then
+                    print("Stage " .. stageKey .. " không tồn tại, có thể tham gia được.")
 
-                    -- 1. Create
-                    Event:FireServer("Create")
-                    wait(0.5)
+                    -- Thực hiện join stage
+                    local success, err = pcall(function()
+                        local Event = safeGetPath(game:GetService("ReplicatedStorage"), {"Remote", "Server", "PlayRoom", "Event"}, 2)
+                        if not Event then
+                            warn("Không tìm thấy Event để join Ranger Stage")
+                            return
+                        end
 
-                    -- 2. Change Mode to Ranger Stage
-                    Event:FireServer("Change-Mode", { Mode = "Ranger Stage" })
-                    wait(0.5)
-
-                    -- 3. Friend Only (nếu được bật)
-                    if rangerFriendOnly then
-                        Event:FireServer("Change-FriendOnly")
+                        -- 1. Create
+                        Event:FireServer("Create")
                         wait(0.5)
+
+                        -- 2. Change Mode to Ranger Stage
+                        Event:FireServer("Change-Mode", { Mode = "Ranger Stage" })
+                        wait(0.5)
+
+                        -- 3. Friend Only (nếu được bật)
+                        if rangerFriendOnly then
+                            Event:FireServer("Change-FriendOnly")
+                            wait(0.5)
+                        end
+
+                        -- 4. Chọn Map và Act
+                        Event:FireServer("Change-World", { World = map })
+                        wait(0.5)
+                        Event:FireServer("Change-Chapter", { Chapter = stageKey })
+                        wait(0.5)
+
+                        -- 5. Submit
+                        Event:FireServer("Submit")
+                        wait(1)
+
+                        -- 6. Start
+                        Event:FireServer("Start")
+                        print("Đã join Ranger Stage: " .. stageKey)
+                    end)
+
+                    if success then
+                        return true -- Thoát ngay khi tham gia thành công
+                    else
+                        warn("Lỗi khi join Ranger Stage: " .. tostring(err))
+                        return false
                     end
-
-                    -- 4. Chọn Map và Act
-                    Event:FireServer("Change-World", { World = map })
-                    wait(0.5)
-                    Event:FireServer("Change-Chapter", { Chapter = stage.Name })
-                    wait(0.5)
-
-                    -- 5. Submit
-                    Event:FireServer("Submit")
-                    wait(1)
-
-                    -- 6. Start
-                    Event:FireServer("Start")
-                    print("Đã join Ranger Stage: " .. stage.Name)
-                end)
-
-                if success then
-                    foundUncompletedStage = true
-                    break -- Thoát vòng lặp sau khi tham gia thành công
                 else
-                    warn("Lỗi khi join Ranger Stage: " .. tostring(err))
-                    return false
+                    print("Stage " .. stageKey .. " đã tồn tại, bỏ qua.")
                 end
             end
         end
     end
 
-    -- Nếu không tìm thấy stage nào chưa thắng
-    if not foundUncompletedStage then
-        print("Tất cả các Ranger Stage đã được hoàn thành hoặc không thuộc map đã chọn.")
-        Fluent:Notify({
-            Title = "Ranger Stage",
-            Content = "Tất cả các Ranger Stage đã được hoàn thành hoặc không thuộc map đã chọn.",
-            Duration = 3
-        })
-        return false
-    end
-
-    return true
+    print("Không tìm thấy Ranger Stage nào có thể tham gia.")
+    Fluent:Notify({
+        Title = "Ranger Stage",
+        Content = "Không tìm thấy Ranger Stage nào có thể tham gia.",
+        Duration = 3
+    })
+    return false
 end
 -- Hàm kiểm tra xem một Ranger Stage đã thắng hay chưa
 local function isRangerStageCompleted(map, stage)
