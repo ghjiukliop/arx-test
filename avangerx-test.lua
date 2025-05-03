@@ -1644,22 +1644,41 @@ local function joinRangerStage()
     return true
 end
 
+local function joinAllRangerStages()
+    for map, isSelected in pairs(selectedRangerMaps) do
+        if isSelected then
+            selectedRangerMap = map -- Cập nhật map hiện tại
+            local success = joinRangerStage()
+            if success then
+                print("Đã tham gia Ranger Stage ở map: " .. map)
+                return true -- Dừng nếu tham gia thành công
+            end
+        end
+    end
+    print("Không còn map nào để tham gia Ranger Stage.")
+    return false
+end
 -- Hàm để lặp qua các selected Acts
-local function cycleRangerStages()
+local function cycleAllRangerStages()
     if not autoJoinRangerEnabled or isPlayerInMap() then
         return
     end
-    
-    -- Đợi theo time delay 
-    wait(rangerTimeDelay)
-    
-    -- Kiểm tra lại điều kiện sau khi đợi
-    if not autoJoinRangerEnabled or isPlayerInMap() then
-        return
+
+    -- Lặp qua tất cả các map đã chọn
+    for map, isSelected in pairs(selectedRangerMaps) do
+        if isSelected then
+            selectedRangerMap = map -- Cập nhật map hiện tại
+
+            -- Lặp qua tất cả các Act đã chọn
+            for act, isActSelected in pairs(selectedActs) do
+                if isActSelected and not isPlayerInMap() then
+                    print("Đang tham gia map: " .. map .. ", Act: " .. act)
+                    joinRangerStage() -- Gọi hàm tham gia Act
+                    wait(rangerTimeDelay) -- Chờ delay giữa các lần tham gia
+                end
+            end
+        end
     end
-    
-    -- Join Ranger Stage với Act theo thứ tự luân phiên
-    joinRangerStage()
 end
 
 
