@@ -1527,14 +1527,14 @@ local function joinRangerStage()
         return false
     end
 
-    -- Lặp qua tất cả các RangerStage để tìm stage chưa thắng
+    -- Lặp qua tất cả các RangerStage để tìm stage chưa thắng và thuộc map đã chọn
     local foundUncompletedStage = false
     for _, stage in ipairs(rangerStageFolder:GetChildren()) do
         if stage:IsA("BoolValue") and stage.Value == false then
             -- Tách tên map và stage từ tên của BoolValue
             local map, act = string.match(stage.Name, "^(.-)_(.+)$")
-            if map and act then
-                print("Tìm thấy Ranger Stage chưa thắng: " .. stage.Name)
+            if map and act and selectedRangerMaps[map] then
+                print("Tìm thấy Ranger Stage chưa thắng: " .. stage.Name .. " thuộc map: " .. map)
 
                 -- Thực hiện join stage chưa thắng
                 local success, err = pcall(function()
@@ -1586,10 +1586,10 @@ local function joinRangerStage()
 
     -- Nếu không tìm thấy stage nào chưa thắng
     if not foundUncompletedStage then
-        print("Tất cả các Ranger Stage đã được hoàn thành. Không còn stage nào để tham gia.")
+        print("Tất cả các Ranger Stage đã được hoàn thành hoặc không thuộc map đã chọn.")
         Fluent:Notify({
             Title = "Ranger Stage",
-            Content = "Tất cả các Ranger Stage đã được hoàn thành. Không còn stage nào để tham gia.",
+            Content = "Tất cả các Ranger Stage đã được hoàn thành hoặc không thuộc map đã chọn.",
             Duration = 3
         })
         return false
@@ -1597,7 +1597,6 @@ local function joinRangerStage()
 
     return true
 end
-
 -- Hàm kiểm tra xem một Ranger Stage đã thắng hay chưa
 local function isRangerStageCompleted(map, stage)
     local player = game:GetService("Players").LocalPlayer
