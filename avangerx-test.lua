@@ -2219,39 +2219,37 @@ ChallengeSection:AddToggle("AutoChallengeToggle", {
         autoChallengeEnabled = Value
         ConfigSystem.CurrentConfig.AutoChallenge = Value
         ConfigSystem.SaveConfig()
-        
+
         if Value then
-            -- Kiểm tra ngay lập tức nếu người chơi đang ở trong map
-            if isPlayerInMap() then
-                print("Đang ở trong map, Auto Challenge sẽ hoạt động khi bạn rời khỏi map")
-            else
-                print("Auto Challenge đã được bật, sẽ bắt đầu sau " .. challengeTimeDelay .. " giây")
-                
-                -- Thực hiện join Challenge sau thời gian delay
-                spawn(function()
-                    wait(challengeTimeDelay)
-                    if autoChallengeEnabled and not isPlayerInMap() then
-                        joinChallenge()
-                    end
-                end)
-            end
-            
-            -- Tạo vòng lặp Auto Join Challenge
+            print("Auto Challenge đã được bật")
             spawn(function()
-                while autoChallengeEnabled and wait(10) do -- Thử join challenge mỗi 10 giây
-                    -- Chỉ thực hiện join challenge nếu người chơi không ở trong map
+                while autoChallengeEnabled and wait(10) do
                     if not isPlayerInMap() then
-                        -- Áp dụng time delay
-                        print("Đợi " .. challengeTimeDelay .. " giây trước khi join Challenge")
-                        wait(challengeTimeDelay)
-                        
-                        -- Kiểm tra lại sau khi delay
-                        if autoChallengeEnabled and not isPlayerInMap() then
-                            joinChallenge()
+                        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+                        local playerName = game:GetService("Players").LocalPlayer.Name
+
+                        -- Kiểm tra khả năng tham gia Challenge
+                        local playerData = ReplicatedStorage:FindFirstChild("Player_Data")
+                        local playerFolder = playerData and playerData:FindFirstChild(playerName)
+                        local chapterLevels = playerFolder and playerFolder:FindFirstChild("ChapterLevels")
+                        local challengeChapter = ReplicatedStorage:FindFirstChild("Gameplay")
+                            and ReplicatedStorage.Gameplay.Game.Challenge:FindFirstChild("Chapter")
+
+                        if chapterLevels and challengeChapter and challengeChapter:IsA("StringValue") then
+                            local challengeName = challengeChapter.Value
+                            print("Challenge hiện tại:", challengeName)
+
+                            if chapterLevels:FindFirstChild(challengeName) then
+                                print("Đi được, đang tham gia Challenge...")
+                                joinChallenge()
+                            else
+                                print("Không đi được, không thể tham gia Challenge.")
+                            end
+                        else
+                            warn("Dữ liệu không hợp lệ hoặc thiếu")
                         end
                     else
-                        -- Người chơi đang ở trong map, không cần join
-                        print("Đang ở trong map, đợi đến khi người chơi rời khỏi map")
+                        print("Đang ở trong map, đợi rời khỏi map để tham gia Challenge.")
                     end
                 end
             end)
