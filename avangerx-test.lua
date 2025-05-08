@@ -2327,7 +2327,29 @@ local function autoJoinPriority()
             elseif mode == "Boss Event" then
                 success = joinBossEvent()
             elseif mode == "Challenge" then
-                success = joinChallenge()
+                -- Kiểm tra khả năng tham gia Challenge
+                local ReplicatedStorage = game:GetService("ReplicatedStorage")
+                local playerName = game:GetService("Players").LocalPlayer.Name
+
+                local playerData = ReplicatedStorage:FindFirstChild("Player_Data")
+                local playerFolder = playerData and playerData:FindFirstChild(playerName)
+                local chapterLevels = playerFolder and playerFolder:FindFirstChild("ChapterLevels")
+                local challengeChapter = ReplicatedStorage:FindFirstChild("Gameplay")
+                    and ReplicatedStorage.Gameplay.Game.Challenge:FindFirstChild("Chapter")
+
+                if chapterLevels and challengeChapter and challengeChapter:IsA("StringValue") then
+                    local challengeName = challengeChapter.Value
+                    print("Challenge hiện tại:", challengeName)
+
+                    if chapterLevels:FindFirstChild(challengeName) then
+                        print("Challenge có thể tham gia, đang thực hiện...")
+                        success = joinChallenge()
+                    else
+                        print("Không thể tham gia Challenge: Không đủ điều kiện.")
+                    end
+                else
+                    warn("Dữ liệu Challenge không hợp lệ hoặc thiếu.")
+                end
             elseif mode == "Easter Egg" then
                 success = joinEasterEggEvent()
             end
@@ -2344,7 +2366,6 @@ local function autoJoinPriority()
 
     print("Không có mode nào khả dụng để tham gia.")
 end
-
 -- Tự động tải thứ tự ưu tiên từ cấu hình khi khởi động
 spawn(function()
     wait(1) -- Đợi game load
