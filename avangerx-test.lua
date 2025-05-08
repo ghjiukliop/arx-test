@@ -1474,10 +1474,10 @@ local function setupOptimizedLoops()
                     shouldContinue = isPlayerInMap()
                 end
                 
-               -- Kiểm tra Auto Join Ranger
+                -- Kiểm tra Auto Join Ranger
                 if autoJoinRangerEnabled and not shouldContinue then
-                    cycleRangerStages() -- Gọi hàm
-                     wait(5)
+                    cycleRangerStages()
+                    wait(5)
                     shouldContinue = isPlayerInMap()
                 end
                 
@@ -1833,15 +1833,15 @@ local function cycleRangerStages()
     if not autoJoinRangerEnabled or isPlayerInMap() then
         return
     end
-
+    
     -- Đợi theo time delay 
     wait(rangerTimeDelay)
-
+    
     -- Kiểm tra lại điều kiện sau khi đợi
     if not autoJoinRangerEnabled or isPlayerInMap() then
         return
     end
-
+    
     -- Join Ranger Stage với Act theo thứ tự luân phiên
     joinRangerStage()
 end
@@ -2373,16 +2373,7 @@ ChallengeSection:AddToggle("AutoChallengeToggle", {
                 spawn(function()
                     wait(challengeTimeDelay)
                     if autoChallengeEnabled and not isPlayerInMap() then
-                        local canJoin = checkChallengeAvailability() -- Kiểm tra xem có thể đi được không
-                        if canJoin then
-                            joinChallenge()
-                        else
-                            Fluent:Notify({
-                                Title = "Challenge",
-                                Content = "Challenge hiện tại không thể tham gia.",
-                                Duration = 3
-                            })
-                        end
+                        joinChallenge()
                     end
                 end)
             end
@@ -2393,21 +2384,12 @@ ChallengeSection:AddToggle("AutoChallengeToggle", {
                     -- Chỉ thực hiện join challenge nếu người chơi không ở trong map
                     if not isPlayerInMap() then
                         -- Áp dụng time delay
-                        print("Đợi " .. challengeTimeDelay .. " giây trước khi kiểm tra Challenge")
+                        print("Đợi " .. challengeTimeDelay .. " giây trước khi join Challenge")
                         wait(challengeTimeDelay)
                         
                         -- Kiểm tra lại sau khi delay
                         if autoChallengeEnabled and not isPlayerInMap() then
-                            local canJoin = checkChallengeAvailability() -- Kiểm tra xem có thể đi được không
-                            if canJoin then
-                                joinChallenge()
-                            else
-                                Fluent:Notify({
-                                    Title = "Challenge",
-                                    Content = "Challenge hiện tại không thể tham gia.",
-                                    Duration = 3
-                                })
-                            end
+                            joinChallenge()
                         end
                     else
                         -- Người chơi đang ở trong map, không cần join
@@ -2424,8 +2406,6 @@ ChallengeSection:AddToggle("AutoChallengeToggle", {
         end
     end
 })
-
-
 
 -- Nút Join Challenge (manual)
 ChallengeSection:AddButton({
@@ -2488,70 +2468,34 @@ for i = 1, 5 do
     })
 end
 
--- Hàm kiểm tra khả năng tham gia Challenge
-local function checkChallengeAvailability()
-    -- Kiểm tra điều kiện tham gia Challenge
-    -- Trả về true nếu có thể tham gia, false nếu không
-    local success, result = pcall(function()
-        local Event = safeGetPath(game:GetService("ReplicatedStorage"), {"Remote", "Server", "PlayRoom", "Event"}, 2)
-        if not Event then
-            return false
-        end
-
-        -- Kiểm tra trạng thái Challenge (ví dụ: có đủ điều kiện hay không)
-        -- Thay thế logic này bằng điều kiện cụ thể của bạn
-        local challengeStatus = Event:InvokeServer("Check-Challenge-Status")
-        return challengeStatus == "Available"
-    end)
-
-    return success and result or false
-end
-
--- Cập nhật hàm Auto Join Priority
+-- Cập nhật hàm Auto Join Priority để bỏ qua "None"
 local function autoJoinPriority()
     if not autoJoinPriorityEnabled or isPlayerInMap() then
         return
     end
 
-    -- Duyệt qua thứ tự ưu tiên
+    -- Duyệt qua thứ tự ưu tiên và bỏ qua "None"
     for _, mode in ipairs(priorityOrder) do
         if mode ~= "None" then
             local success = false
             if mode == "Story" then
                 success = joinMap()
             elseif mode == "Ranger Stage" then
-                -- Kiểm tra xem có Act nào chưa hoàn thành không
-                updateOrderedActs()
-                local foundUncompletedAct = false
-                for _, act in ipairs(orderedActs) do
-                    if not isRangerStageCompleted(selectedRangerMap, act) then
-                        currentActIndex = _
-                        foundUncompletedAct = true
-                        break
-                    end
-                end
-
-                if foundUncompletedAct then
-                    success = joinRangerStage()
-                else
-                    print("Tất cả các Acts trong Ranger Stage đã hoàn thành. Chuyển sang mode tiếp theo.")
-                end
+                success = joinRangerStage()
             elseif mode == "Boss Event" then
                 success = joinBossEvent()
             elseif mode == "Challenge" then
-                -- Kiểm tra khả năng tham gia Challenge
-                if checkChallengeAvailability() then
-                    success = joinChallenge()
-                else
-                    print("Challenge hiện tại không khả dụng. Chuyển sang mode tiếp theo.")
-                end
+                success = joinChallenge()
             elseif mode == "Easter Egg" then
                 success = joinEasterEggEvent()
             end
 
             -- Nếu tham gia thành công, dừng vòng lặp
             if success then
+                print("Đã tham gia mode: " .. mode)
                 return
+            else
+                print("Không thể tham gia mode: " .. mode .. ", chuyển sang mode tiếp theo.")
             end
         end
     end
