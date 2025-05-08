@@ -2514,31 +2514,47 @@ local function autoJoinPriority()
     end
 
     -- Duyệt qua thứ tự ưu tiên
-    -- Duyệt qua thứ tự ưu tiên
-for _, mode in ipairs(priorityOrder) do
-    if mode ~= "None" then
-        local success = false
-        if mode == "Story" then
-            success = joinMap()
-        elseif mode == "Ranger Stage" then
-            success = joinRangerStage()
-        elseif mode == "Boss Event" then
-            success = joinBossEvent()
-        elseif mode == "Challenge" then
-            -- Kiểm tra khả năng tham gia Challenge
-            if checkChallengeAvailability() then
-                success = joinChallenge()
-            end
-        elseif mode == "Easter Egg" then
-            success = joinEasterEggEvent()
-        end
+    for _, mode in ipairs(priorityOrder) do
+        if mode ~= "None" then
+            local success = false
+            if mode == "Story" then
+                success = joinMap()
+            elseif mode == "Ranger Stage" then
+                -- Kiểm tra xem có Act nào chưa hoàn thành không
+                updateOrderedActs()
+                local foundUncompletedAct = false
+                for _, act in ipairs(orderedActs) do
+                    if not isRangerStageCompleted(selectedRangerMap, act) then
+                        currentActIndex = _
+                        foundUncompletedAct = true
+                        break
+                    end
+                end
 
-        -- Nếu tham gia thành công, dừng vòng lặp
-        if success then
-            return
+                if foundUncompletedAct then
+                    success = joinRangerStage()
+                else
+                    print("Tất cả các Acts trong Ranger Stage đã hoàn thành. Chuyển sang mode tiếp theo.")
+                end
+            elseif mode == "Boss Event" then
+                success = joinBossEvent()
+            elseif mode == "Challenge" then
+                -- Kiểm tra khả năng tham gia Challenge
+                if checkChallengeAvailability() then
+                    success = joinChallenge()
+                else
+                    print("Challenge hiện tại không khả dụng. Chuyển sang mode tiếp theo.")
+                end
+            elseif mode == "Easter Egg" then
+                success = joinEasterEggEvent()
+            end
+
+            -- Nếu tham gia thành công, dừng vòng lặp
+            if success then
+                return
+            end
         end
     end
-end
 
     print("Không có mode nào khả dụng để tham gia.")
 end
