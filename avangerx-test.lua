@@ -1474,10 +1474,10 @@ local function setupOptimizedLoops()
                     shouldContinue = isPlayerInMap()
                 end
                 
-                -- Kiểm tra Auto Join Ranger
+               -- Kiểm tra Auto Join Ranger
                 if autoJoinRangerEnabled and not shouldContinue then
-                    cycleRangerStages()
-                    wait(5)
+                    cycleRangerStages() -- Gọi hàm
+                     wait(5)
                     shouldContinue = isPlayerInMap()
                 end
                 
@@ -1833,15 +1833,15 @@ local function cycleRangerStages()
     if not autoJoinRangerEnabled or isPlayerInMap() then
         return
     end
-    
+
     -- Đợi theo time delay 
     wait(rangerTimeDelay)
-    
+
     -- Kiểm tra lại điều kiện sau khi đợi
     if not autoJoinRangerEnabled or isPlayerInMap() then
         return
     end
-    
+
     -- Join Ranger Stage với Act theo thứ tự luân phiên
     joinRangerStage()
 end
