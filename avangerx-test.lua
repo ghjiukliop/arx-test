@@ -2514,35 +2514,31 @@ local function autoJoinPriority()
     end
 
     -- Duyệt qua thứ tự ưu tiên
-    for _, mode in ipairs(priorityOrder) do
-        if mode ~= "None" then
-            local success = false
-            if mode == "Story" then
-                success = joinMap()
-            elseif mode == "Ranger Stage" then
-                success = joinRangerStage()
-            elseif mode == "Boss Event" then
-                success = joinBossEvent()
-            elseif mode == "Challenge" then
-                -- Kiểm tra khả năng tham gia Challenge
-                if checkChallengeAvailability() then
-                    success = joinChallenge()
-                else
-                    print("Không thể tham gia Challenge, chuyển sang mode tiếp theo.")
-                end
-            elseif mode == "Easter Egg" then
-                success = joinEasterEggEvent()
+    -- Duyệt qua thứ tự ưu tiên
+for _, mode in ipairs(priorityOrder) do
+    if mode ~= "None" then
+        local success = false
+        if mode == "Story" then
+            success = joinMap()
+        elseif mode == "Ranger Stage" then
+            success = joinRangerStage()
+        elseif mode == "Boss Event" then
+            success = joinBossEvent()
+        elseif mode == "Challenge" then
+            -- Kiểm tra khả năng tham gia Challenge
+            if checkChallengeAvailability() then
+                success = joinChallenge()
             end
+        elseif mode == "Easter Egg" then
+            success = joinEasterEggEvent()
+        end
 
-            -- Nếu tham gia thành công, dừng vòng lặp
-            if success then
-                print("Đã tham gia mode: " .. mode)
-                return
-            else
-                print("Không thể tham gia mode: " .. mode .. ", chuyển sang mode tiếp theo.")
-            end
+        -- Nếu tham gia thành công, dừng vòng lặp
+        if success then
+            return
         end
     end
+end
 
     print("Không có mode nào khả dụng để tham gia.")
 end
