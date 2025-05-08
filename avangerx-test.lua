@@ -2373,7 +2373,16 @@ ChallengeSection:AddToggle("AutoChallengeToggle", {
                 spawn(function()
                     wait(challengeTimeDelay)
                     if autoChallengeEnabled and not isPlayerInMap() then
-                        joinChallenge()
+                        local canJoin = checkChallengeAvailability() -- Kiểm tra xem có thể đi được không
+                        if canJoin then
+                            joinChallenge()
+                        else
+                            Fluent:Notify({
+                                Title = "Challenge",
+                                Content = "Challenge hiện tại không thể tham gia.",
+                                Duration = 3
+                            })
+                        end
                     end
                 end)
             end
@@ -2384,12 +2393,21 @@ ChallengeSection:AddToggle("AutoChallengeToggle", {
                     -- Chỉ thực hiện join challenge nếu người chơi không ở trong map
                     if not isPlayerInMap() then
                         -- Áp dụng time delay
-                        print("Đợi " .. challengeTimeDelay .. " giây trước khi join Challenge")
+                        print("Đợi " .. challengeTimeDelay .. " giây trước khi kiểm tra Challenge")
                         wait(challengeTimeDelay)
                         
                         -- Kiểm tra lại sau khi delay
                         if autoChallengeEnabled and not isPlayerInMap() then
-                            joinChallenge()
+                            local canJoin = checkChallengeAvailability() -- Kiểm tra xem có thể đi được không
+                            if canJoin then
+                                joinChallenge()
+                            else
+                                Fluent:Notify({
+                                    Title = "Challenge",
+                                    Content = "Challenge hiện tại không thể tham gia.",
+                                    Duration = 3
+                                })
+                            end
                         end
                     else
                         -- Người chơi đang ở trong map, không cần join
@@ -2406,6 +2424,8 @@ ChallengeSection:AddToggle("AutoChallengeToggle", {
         end
     end
 })
+
+
 
 -- Nút Join Challenge (manual)
 ChallengeSection:AddButton({
