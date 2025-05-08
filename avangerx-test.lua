@@ -2488,13 +2488,32 @@ for i = 1, 5 do
     })
 end
 
--- Cập nhật hàm Auto Join Priority để bỏ qua "None"
+-- Hàm kiểm tra khả năng tham gia Challenge
+local function checkChallengeAvailability()
+    -- Kiểm tra điều kiện tham gia Challenge
+    -- Trả về true nếu có thể tham gia, false nếu không
+    local success, result = pcall(function()
+        local Event = safeGetPath(game:GetService("ReplicatedStorage"), {"Remote", "Server", "PlayRoom", "Event"}, 2)
+        if not Event then
+            return false
+        end
+
+        -- Kiểm tra trạng thái Challenge (ví dụ: có đủ điều kiện hay không)
+        -- Thay thế logic này bằng điều kiện cụ thể của bạn
+        local challengeStatus = Event:InvokeServer("Check-Challenge-Status")
+        return challengeStatus == "Available"
+    end)
+
+    return success and result or false
+end
+
+-- Cập nhật hàm Auto Join Priority
 local function autoJoinPriority()
     if not autoJoinPriorityEnabled or isPlayerInMap() then
         return
     end
 
-    -- Duyệt qua thứ tự ưu tiên và bỏ qua "None"
+    -- Duyệt qua thứ tự ưu tiên
     for _, mode in ipairs(priorityOrder) do
         if mode ~= "None" then
             local success = false
@@ -2505,7 +2524,12 @@ local function autoJoinPriority()
             elseif mode == "Boss Event" then
                 success = joinBossEvent()
             elseif mode == "Challenge" then
-                success = joinChallenge()
+                -- Kiểm tra khả năng tham gia Challenge
+                if checkChallengeAvailability() then
+                    success = joinChallenge()
+                else
+                    print("Không thể tham gia Challenge, chuyển sang mode tiếp theo.")
+                end
             elseif mode == "Easter Egg" then
                 success = joinEasterEggEvent()
             end
